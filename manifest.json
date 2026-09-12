@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Mind for Firefox",
-  "version": "1.3",
-  "description": "Fixes the desktop screen-sharing feature of i.Mind video conferencing on e-class.tsu.ru when used in Firefox.",
+  "version": "1.4",
+  "description": "Исправляет демонстрацию экрана в видеоконференциях i.Mind на e-class.tsu.ru при использовании в Firefox.",
   "icons": {
     "48": "icon48.png",
     "96": "icon96.png"
