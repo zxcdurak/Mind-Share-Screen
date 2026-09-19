@@ -17,7 +17,11 @@
     //    ("34+, needs extension") branch, which we then fulfil below
     //    with real browser APIs instead of a real Chrome extension.
     // ---------------------------------------------------------------
-    const FAKE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+    // No "AppleWebKit" on purpose: GWT's user.agent property provider returns
+    // 'safari' as soon as it sees "webkit", which makes Firefox run the Safari
+    // build of the app. Without it (but with "Gecko") GWT picks the 'gecko1_8'
+    // build, while the app's own parser still detects "Chrome/124".
+    const FAKE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Chrome/124.0.0.0 Safari/537.36';
     try {
         Object.defineProperty(nav, 'userAgent', { get: () => FAKE_UA, configurable: true });
         Object.defineProperty(nav, 'appVersion', { get: () => FAKE_UA.replace('Mozilla/', ''), configurable: true });

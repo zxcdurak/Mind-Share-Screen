@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Mind for Firefox",
-  "version": "1.4",
-  "description": "Исправляет демонстрацию экрана в видеоконференциях i.Mind на e-class.tsu.ru при использовании в Firefox.",
+  "version": "1.5",
+  "description": "Исправляет демонстрацию экрана и работу поля ввода чата в видеоконференциях i.Mind на e-class.tsu.ru при использовании в Firefox.",
   "icons": {
     "48": "icon48.png",
     "96": "icon96.png"
@@ -27,5 +27,5 @@
       "all_frames": false
     }
   ],
-  "web_accessible_resources": ["inject.js"]
+  "web_accessible_resources": ["inject.js", "chatfix.js"]
 }
