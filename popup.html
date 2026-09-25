@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Избранные конференции</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Избранные конференции</h1>
+
+  <form id="addForm">
+    <input id="name" type="text" placeholder="Название" maxlength="80" autocomplete="off">
+    <button id="addBtn" type="submit">Добавить текущую вкладку</button>
+  </form>
+  <p id="hint" class="hint" hidden></p>
+
+  <ul id="list"></ul>
+  <p id="empty" class="hint" hidden>Пока ничего нет. Откройте конференцию на e-class.tsu.ru и нажмите «Добавить».</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

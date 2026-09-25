@@ -1,0 +1,143 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1b1b1f;
+  --muted: #6b6b76;
+  --line: #d9d9e0;
+  --accent: #0060df;
+  --accent-fg: #ffffff;
+  --hover: #f0f0f4;
+  --danger: #c50042;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #23222b;
+    --fg: #fbfbfe;
+    --muted: #a5a5b3;
+    --line: #3d3c47;
+    --accent: #0a84ff;
+    --accent-fg: #ffffff;
+    --hover: #34333e;
+    --danger: #ff6a8f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 340px;
+  margin: 0;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+input[type="text"]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+#addBtn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+#addBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+li .open {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+li .open:hover,
+li .open:focus-visible {
+  background: var(--hover);
+}
+
+li .icon {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+}
+
+li .icon:hover,
+li .icon:focus-visible {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+li .icon.delete:hover,
+li .icon.delete:focus-visible {
+  color: var(--danger);
+}
+
+li input[type="text"] {
+  flex: 1;
+  margin: 4px 0;
+}
