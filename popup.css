@@ -87,6 +87,23 @@ button {
   font-size: 12px;
 }
 
+.hint.error {
+  color: var(--danger);
+}
+
+.settings {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.settings label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 ul {
   margin: 12px 0 0;
   padding: 0;
@@ -104,13 +121,24 @@ li {
 li .open {
   flex: 1;
   min-width: 0;
-  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
   border: 0;
   background: none;
   text-align: left;
+}
+
+li .open .name,
+li .open .num {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+li .open .num {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 li .open:hover,

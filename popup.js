@@ -1,63 +1,54 @@
 'use strict';
 
-const HOST = 'e-class.tsu.ru';
-const KEY = 'favorites';
+const BASE_URL = 'https://e-class.tsu.ru/';
+const FAVORITES_KEY = 'favorites';
+const GUEST_NAME_KEY = 'guestName';
+const PENDING_JOIN_KEY = 'pendingJoin';
 
 const $ = id => document.getElementById(id);
 
-let currentTab = null;
 let favorites = [];
 
-function parseSupportedUrl(url) {
-    try {
-        const u = new URL(url);
-        return u.protocol === 'https:' && u.hostname === HOST ? u : null;
-    } catch (e) {
-        return null;
-    }
+function normalizeNumber(value) {
+    const digits = String(value).replace(/[\s\-–—]/g, '');
+    return /^\d{1,18}$/.test(digits) ? digits : null;
+}
+
+function cleanName(value) {
+    return String(value).replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function formatNumber(number) {
+    return number.length > 3 ? number.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : number;
 }
 
 async function load() {
-    const stored = await browser.storage.local.get(KEY);
-    const list = stored[KEY];
+    const stored = await browser.storage.local.get([FAVORITES_KEY, GUEST_NAME_KEY]);
+    const list = stored[FAVORITES_KEY];
     favorites = Array.isArray(list)
-        ? list.filter(f => f && typeof f.url === 'string' && parseSupportedUrl(f.url))
+        ? list.filter(f => f && typeof f.number === 'string' && normalizeNumber(f.number))
         : [];
+    $('guestName').value = typeof stored[GUEST_NAME_KEY] === 'string' ? stored[GUEST_NAME_KEY] : '';
 }
 
 function save() {
-    return browser.storage.local.set({ [KEY]: favorites });
+    return browser.storage.local.set({ [FAVORITES_KEY]: favorites });
 }
 
-function findCurrent() {
-    return currentTab ? favorites.find(f => f.url === currentTab.url) : undefined;
-}
-
-function refreshAddState() {
-    const hint = $('hint');
-    const button = $('addBtn');
-    const name = $('name');
-
-    const url = currentTab && currentTab.url ? parseSupportedUrl(currentTab.url) : null;
-    const looksLikeRoot = url && url.pathname === '/' && !url.search && !url.hash;
-
-    let message = '';
-    if (!url) {
-        message = 'Чтобы добавить конференцию, откройте её вкладку на ' + HOST + '.';
-    } else if (looksLikeRoot) {
-        message = 'У этой страницы нет адреса конференции — сначала откройте нужную конференцию.';
-    }
-
-    const enabled = !message;
-    button.disabled = !enabled;
-    name.disabled = !enabled;
-    hint.hidden = enabled;
-    hint.textContent = message;
-    button.textContent = findCurrent() ? 'Сохранить название' : 'Добавить текущую вкладку';
+function showError(message) {
+    const el = $('error');
+    el.textContent = message;
+    el.hidden = !message;
 }
 
 async function openFavorite(fav) {
-    await browser.tabs.create({ url: fav.url });
+    const name = cleanName($('guestName').value);
+    if (name) {
+        await browser.storage.local.set({ [PENDING_JOIN_KEY]: { name, at: Date.now() } });
+    } else {
+        await browser.storage.local.remove(PENDING_JOIN_KEY);
+    }
+    await browser.tabs.create({ url: BASE_URL + '#login_by_id:' + fav.number });
     window.close();
 }
 
@@ -65,7 +56,6 @@ async function remove(fav) {
     favorites = favorites.filter(f => f.id !== fav.id);
     await save();
     render();
-    refreshAddState();
 }
 
 function startRename(li, fav) {
@@ -85,7 +75,6 @@ function startRename(li, fav) {
             await save();
         }
         render();
-        refreshAddState();
     };
 
     input.addEventListener('keydown', e => {
@@ -110,9 +99,16 @@ function render() {
         const open = document.createElement('button');
         open.type = 'button';
         open.className = 'open';
-        open.textContent = fav.title || fav.url;
-        open.title = fav.url;
+        open.title = 'Войти по номеру ' + fav.number;
         open.addEventListener('click', () => openFavorite(fav));
+
+        const name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = fav.title;
+        const num = document.createElement('span');
+        num.className = 'num';
+        num.textContent = formatNumber(fav.number);
+        open.append(name, num);
 
         const rename = document.createElement('button');
         rename.type = 'button';
@@ -135,29 +131,33 @@ function render() {
 
 $('addForm').addEventListener('submit', async e => {
     e.preventDefault();
-    if (!currentTab || !parseSupportedUrl(currentTab.url)) return;
 
-    const title = $('name').value.trim() || currentTab.title || currentTab.url;
-    const existing = findCurrent();
+    const number = normalizeNumber($('number').value);
+    if (!number) {
+        showError('Номер конференции должен состоять только из цифр.');
+        return;
+    }
+    showError('');
+
+    const title = $('title').value.trim() || 'Конференция ' + formatNumber(number);
+    const existing = favorites.find(f => f.number === number);
     if (existing) {
         existing.title = title;
     } else {
-        favorites.push({ id: crypto.randomUUID(), title, url: currentTab.url, added: Date.now() });
+        favorites.push({ id: crypto.randomUUID(), title, number, added: Date.now() });
     }
 
     await save();
+    $('title').value = '';
+    $('number').value = '';
     render();
-    refreshAddState();
+});
+
+$('guestName').addEventListener('input', () => {
+    browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });
 });
 
 (async function init() {
     await load();
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    currentTab = tabs[0] || null;
-
-    const existing = findCurrent();
-    $('name').value = existing ? existing.title : (currentTab && currentTab.title) || '';
-
-    refreshAddState();
     render();
 })();

@@ -9,13 +9,20 @@
   <h1>Избранные конференции</h1>
 
   <form id="addForm">
-    <input id="name" type="text" placeholder="Название" maxlength="80" autocomplete="off">
-    <button id="addBtn" type="submit">Добавить текущую вкладку</button>
+    <input id="title" type="text" placeholder="Название (например, Лекция по физике)" maxlength="80" autocomplete="off">
+    <input id="number" type="text" inputmode="numeric" placeholder="Номер конференции" maxlength="24" autocomplete="off">
+    <button id="addBtn" type="submit">Добавить</button>
   </form>
-  <p id="hint" class="hint" hidden></p>
+  <p id="error" class="hint error" hidden></p>
 
   <ul id="list"></ul>
-  <p id="empty" class="hint" hidden>Пока ничего нет. Откройте конференцию на e-class.tsu.ru и нажмите «Добавить».</p>
+  <p id="empty" class="hint" hidden>Пока ничего нет. Введите номер конференции — тот, по которому вы входите на e-class.tsu.ru по номеру.</p>
+
+  <section class="settings">
+    <label for="guestName">Имя для входа гостем (необязательно)</label>
+    <input id="guestName" type="text" placeholder="Например, Иван Иванов" maxlength="80" autocomplete="off">
+    <p class="hint">Если заполнено, при входе из избранного имя подставится само, без ввода на странице.</p>
+  </section>
 
   <script src="popup.js"></script>
 </body>
