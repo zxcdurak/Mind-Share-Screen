@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Импорт и экспорт избранного</title>
+  <link rel="stylesheet" href="transfer.css">
+</head>
+<body>
+  <main>
+    <h1>Импорт и экспорт избранного</h1>
+
+    <section>
+      <h2>Экспорт</h2>
+      <p>Сохраняет список избранных конференций (названия и номера) в файл. Имя для входа гостем в файл не попадает.</p>
+      <button id="exportBtn" type="button">Сохранить в файл</button>
+      <p id="exportInfo" class="info"></p>
+    </section>
+
+    <section>
+      <h2>Импорт</h2>
+      <p>Загрузите файл, сохранённый этим расширением. Новые конференции добавятся, у уже существующих номеров обновится название. Ничего из текущего списка не удаляется.</p>
+      <input id="file" type="file" accept=".json,application/json">
+      <p id="importInfo" class="info" role="status"></p>
+    </section>
+  </main>
+  <script src="transfer.js"></script>
+</body>
+</html>

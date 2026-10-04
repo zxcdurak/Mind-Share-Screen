@@ -153,6 +153,11 @@ $('addForm').addEventListener('submit', async e => {
     render();
 });
 
+$('transferBtn').addEventListener('click', async () => {
+    await browser.tabs.create({ url: browser.runtime.getURL('transfer.html') });
+    window.close();
+});
+
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });
 });

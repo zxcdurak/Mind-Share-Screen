@@ -104,6 +104,16 @@ button {
   font-weight: 600;
 }
 
+button.link {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
 ul {
   margin: 12px 0 0;
   padding: 0;
