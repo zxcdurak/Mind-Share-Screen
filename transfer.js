@@ -59,7 +59,7 @@ function parseImport(text) {
         const number = raw && typeof raw === 'object' ? normalizeNumber(raw.number ?? '') : null;
         if (!number) { skipped++; continue; }
         const title = typeof raw.title === 'string' ? raw.title.trim().slice(0, 80) : '';
-        items.push({ number, title });
+        items.push({ number, title, slots: MindCommon.sanitizeSlots(raw.slots) });
     }
     return { items, skipped };
 }
@@ -72,7 +72,12 @@ $('exportBtn').addEventListener('click', async () => {
         format: FORMAT,
         version: 1,
         exported: new Date().toISOString(),
-        favorites: favorites.map(f => ({ title: f.title, number: f.number }))
+        favorites: favorites.map(f => {
+            const entry = { title: f.title, number: f.number };
+            const slots = MindCommon.sanitizeSlots(f.slots).map(({ days, time }) => ({ days, time }));
+            if (slots.length) entry.slots = slots;
+            return entry;
+        })
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -104,15 +109,27 @@ $('file').addEventListener('change', async e => {
         for (const item of items) {
             const existing = byNumber.get(item.number);
             if (existing) {
+                let changed = false;
                 if (item.title && item.title !== existing.title) {
                     existing.title = item.title;
-                    updated++;
+                    changed = true;
                 }
+                // A schedule in the file replaces the current one; no schedule in the file leaves it alone.
+                if (item.slots.length) {
+                    const before = JSON.stringify(MindCommon.sanitizeSlots(existing.slots).map(({ days, time }) => ({ days, time })));
+                    const after = JSON.stringify(item.slots.map(({ days, time }) => ({ days, time })));
+                    if (before !== after) {
+                        existing.slots = item.slots;
+                        changed = true;
+                    }
+                }
+                if (changed) updated++;
             } else {
                 const fav = {
                     id: crypto.randomUUID(),
                     title: item.title || 'Конференция ' + item.number,
                     number: item.number,
+                    slots: item.slots,
                     added: Date.now()
                 };
                 current.push(fav);

@@ -170,6 +170,10 @@ li .icon:focus-visible {
   color: var(--fg);
 }
 
+li .icon.active {
+  color: var(--accent);
+}
+
 li .icon.delete:hover,
 li .icon.delete:focus-visible {
   color: var(--danger);

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Напоминания о конференциях</title>
+  <link rel="stylesheet" href="reminders.css">
+</head>
+<body>
+  <main>
+    <h1>Напоминания о конференциях</h1>
+
+    <section id="perm" aria-live="polite"></section>
+
+    <section>
+      <h2>Расписание</h2>
+      <p class="muted">Для каждой конференции задайте дни недели и время начала. Расписание сохраняется само. Уведомления приходят только при включённых напоминаниях.</p>
+      <p id="saved" class="saved" role="status"></p>
+      <div id="cards"></div>
+      <p id="empty" class="muted" hidden>В избранном пока ничего нет. Добавьте конференцию через кнопку расширения на панели инструментов.</p>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="reminders.js"></script>
+</body>
+</html>

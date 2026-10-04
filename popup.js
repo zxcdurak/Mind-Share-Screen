@@ -1,21 +1,16 @@
 'use strict';
 
-const BASE_URL = 'https://e-class.tsu.ru/';
 const FAVORITES_KEY = 'favorites';
 const GUEST_NAME_KEY = 'guestName';
-const PENDING_JOIN_KEY = 'pendingJoin';
 
 const $ = id => document.getElementById(id);
+const { cleanName } = MindCommon;
 
 let favorites = [];
 
 function normalizeNumber(value) {
     const digits = String(value).replace(/[\s\-–—]/g, '');
     return /^\d{1,18}$/.test(digits) ? digits : null;
-}
-
-function cleanName(value) {
-    return String(value).replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function formatNumber(number) {
@@ -42,14 +37,22 @@ function showError(message) {
 }
 
 async function openFavorite(fav) {
-    const name = cleanName($('guestName').value);
-    if (name) {
-        await browser.storage.local.set({ [PENDING_JOIN_KEY]: { name, at: Date.now() } });
-    } else {
-        await browser.storage.local.remove(PENDING_JOIN_KEY);
-    }
-    await browser.tabs.create({ url: BASE_URL + '#login_by_id:' + fav.number });
+    await MindCommon.openConference(fav.number);
     window.close();
+}
+
+async function openReminders(fav) {
+    await browser.tabs.create({ url: browser.runtime.getURL('reminders.html') + '#' + encodeURIComponent(fav.id) });
+    window.close();
+}
+
+function scheduleSummary(fav) {
+    const slots = MindCommon.sanitizeSlots(fav.slots);
+    if (!slots.length) return 'Напоминания: расписание не задано';
+    const label = slots.map(s => s.days
+        .slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+        .map(d => MindCommon.DAYS.find(x => x.n === d).short).join(', ') + ' ' + s.time).join('; ');
+    return 'Расписание: ' + label;
 }
 
 async function remove(fav) {
@@ -117,6 +120,13 @@ function render() {
         rename.title = 'Переименовать';
         rename.addEventListener('click', () => startRename(li, fav));
 
+        const bell = document.createElement('button');
+        bell.type = 'button';
+        bell.className = 'icon' + (MindCommon.sanitizeSlots(fav.slots).length ? ' active' : '');
+        bell.textContent = '⏰';
+        bell.title = scheduleSummary(fav);
+        bell.addEventListener('click', () => openReminders(fav));
+
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'icon delete';
@@ -124,7 +134,7 @@ function render() {
         del.title = 'Удалить';
         del.addEventListener('click', () => remove(fav));
 
-        li.append(open, rename, del);
+        li.append(open, bell, rename, del);
         list.append(li);
     }
 }
