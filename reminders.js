@@ -12,7 +12,7 @@ let savedTimer = null;
 
 function flashSaved() {
     const el = $('saved');
-    el.textContent = 'Сохранено';
+    el.textContent = '✓ Сохранено';
     clearTimeout(savedTimer);
     savedTimer = setTimeout(() => { el.textContent = ''; }, 1500);
 }
@@ -62,7 +62,7 @@ async function renderPermissions() {
     button.type = 'button';
 
     if (!granted) {
-        button.className = 'primary';
+        button.className = 'btn primary';
         button.textContent = 'Включить напоминания';
         // permissions.request() must be called straight from the click handler.
         button.addEventListener('click', () => {
@@ -75,13 +75,13 @@ async function renderPermissions() {
         box.append(status);
 
         const text = document.createElement('p');
-        text.className = 'muted';
+        text.className = 'hint';
         text.textContent = 'Расширение работает и без напоминаний. Если включить их, Firefox спросит разрешение на показ уведомлений — оно нужно только для этого. Выключить можно в любой момент.';
         box.append(text);
         return;
     }
 
-    button.className = 'secondary';
+    button.className = 'btn';
     button.textContent = 'Отключить напоминания';
     button.addEventListener('click', async () => {
         try { await browser.alarms.clearAll(); } catch (e) { /* already gone */ }
@@ -146,11 +146,7 @@ function renderSlot(fav, slot, container) {
         persist(fav.id);
     });
 
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'remove';
-    remove.textContent = '✕';
-    remove.title = 'Удалить время';
+    const remove = MindIcons.button('close', 'Удалить время', 'remove');
     remove.addEventListener('click', () => {
         const list = drafts.get(fav.id);
         list.splice(list.indexOf(slot), 1);

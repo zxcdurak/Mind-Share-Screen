@@ -1,85 +1,35 @@
-:root {
-  color-scheme: light dark;
-  --bg: #ffffff;
-  --fg: #1b1b1f;
-  --muted: #6b6b76;
-  --line: #d9d9e0;
-  --accent: #0060df;
-  --accent-fg: #ffffff;
-  --ok: #1a7f37;
-  --danger: #c50042;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #23222b;
-    --fg: #fbfbfe;
-    --muted: #a5a5b3;
-    --line: #3d3c47;
-    --accent: #0a84ff;
-    --ok: #4cc26a;
-    --danger: #ff6a8f;
-  }
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
 main {
   max-width: 560px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 28px 16px 56px;
 }
 
-h1 {
-  margin: 0 0 20px;
-  font-size: 20px;
-}
+main > h1 { margin-bottom: 18px; font-size: 20px; }
 
-h2 {
-  margin: 0 0 6px;
-  font-size: 15px;
-}
+section { padding: 18px 0; border-top: 1px solid var(--border); }
+section h2 { margin-bottom: 8px; }
+section p { margin-bottom: 12px; color: var(--muted); }
 
-section {
-  padding: 16px 0;
-  border-top: 1px solid var(--line);
-}
-
-p {
-  margin: 0 0 10px;
+input[type="file"] {
+  max-width: 100%;
   color: var(--muted);
+  font: inherit;
 }
-
-button {
+input[type="file"]::file-selector-button {
+  margin-right: 10px;
   padding: 7px 14px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--accent);
-  color: var(--accent-fg);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
+input[type="file"]::file-selector-button:hover { background: var(--raised); }
 
-button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-input[type="file"] {
-  max-width: 100%;
-  font: inherit;
-}
-
-.info {
-  margin: 10px 0 0;
-  min-height: 1.5em;
-}
-
-.info.ok { color: var(--ok); }
-.info.error { color: var(--danger); }
+.info { margin: 12px 0 0; min-height: 1.5em; color: var(--muted); }
+.info.ok { color: var(--fg); }
+.info.ok:not(:empty)::before { content: "✓ "; }
+.info.error { color: var(--fg); padding: 7px 10px; border: 1px solid var(--border-strong); border-left: 3px solid var(--fg); border-radius: 4px; background: var(--surface); }
+.info.error:not(:empty)::before { content: "! "; font-weight: 700; }

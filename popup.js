@@ -113,28 +113,17 @@ function render() {
         num.textContent = formatNumber(fav.number);
         open.append(name, num);
 
-        const rename = document.createElement('button');
-        rename.type = 'button';
-        rename.className = 'icon';
-        rename.textContent = '✎';
-        rename.title = 'Переименовать';
+        const hasSchedule = MindCommon.sanitizeSlots(fav.slots).length > 0;
+        const clock = MindIcons.button('clock', scheduleSummary(fav), hasSchedule ? 'active' : '');
+        clock.addEventListener('click', () => openReminders(fav));
+
+        const rename = MindIcons.button('pencil', 'Переименовать');
         rename.addEventListener('click', () => startRename(li, fav));
 
-        const bell = document.createElement('button');
-        bell.type = 'button';
-        bell.className = 'icon' + (MindCommon.sanitizeSlots(fav.slots).length ? ' active' : '');
-        bell.textContent = '⏰';
-        bell.title = scheduleSummary(fav);
-        bell.addEventListener('click', () => openReminders(fav));
-
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'icon delete';
-        del.textContent = '✕';
-        del.title = 'Удалить';
+        const del = MindIcons.button('close', 'Удалить');
         del.addEventListener('click', () => remove(fav));
 
-        li.append(open, bell, rename, del);
+        li.append(open, clock, rename, del);
         list.append(li);
     }
 }
@@ -163,10 +152,13 @@ $('addForm').addEventListener('submit', async e => {
     render();
 });
 
-$('transferBtn').addEventListener('click', async () => {
+const transferBtn = MindIcons.button('transfer', 'Импорт и экспорт избранного');
+transferBtn.id = 'transferBtn';
+transferBtn.addEventListener('click', async () => {
     await browser.tabs.create({ url: browser.runtime.getURL('transfer.html') });
     window.close();
 });
+$('transferSlot').append(transferBtn);
 
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });

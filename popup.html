@@ -3,29 +3,41 @@
 <head>
   <meta charset="utf-8">
   <title>Избранные конференции</title>
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>Избранные конференции</h1>
+  <header>
+    <h1>Избранные конференции</h1>
+    <span id="transferSlot"></span>
+  </header>
 
-  <form id="addForm">
-    <input id="title" type="text" placeholder="Название (например, Лекция по физике)" maxlength="80" autocomplete="off">
-    <input id="number" type="text" inputmode="numeric" placeholder="Номер конференции" maxlength="24" autocomplete="off">
-    <button id="addBtn" type="submit">Добавить</button>
-  </form>
-  <p id="error" class="hint error" hidden></p>
-
-  <ul id="list"></ul>
-  <p id="empty" class="hint" hidden>Пока ничего нет. Введите номер конференции — тот, по которому вы входите на e-class.tsu.ru по номеру.</p>
-
-  <section class="settings">
-    <label for="guestName">Имя для входа гостем (необязательно)</label>
+  <section class="block">
+    <label for="guestName">Имя для входа гостем</label>
     <input id="guestName" type="text" placeholder="Например, Иван Иванов" maxlength="80" autocomplete="off">
-    <p class="hint">Если заполнено, при входе из избранного имя подставится само, без ввода на странице.</p>
-    <button id="transferBtn" type="button" class="link">Импорт и экспорт избранного…</button>
+    <p class="hint">Необязательно. Если заполнено, при входе из списка имя подставится само, без ввода на странице.</p>
+  </section>
+
+  <section class="block">
+    <h2>Список</h2>
+    <ul id="list"></ul>
+    <p id="empty" class="hint" hidden>Пока ничего нет. Добавьте номер конференции ниже: тот, по которому вы входите на e-class.tsu.ru «по номеру».</p>
+  </section>
+
+  <section class="block">
+    <h2>Добавить конференцию</h2>
+    <form id="addForm">
+      <input id="title" type="text" placeholder="Название (например, Лекция по физике)" maxlength="80" autocomplete="off">
+      <div class="row">
+        <input id="number" type="text" inputmode="numeric" placeholder="Номер конференции" maxlength="24" autocomplete="off">
+        <button id="addBtn" class="btn primary" type="submit">Добавить</button>
+      </div>
+    </form>
+    <p id="error" class="notice" role="alert" hidden></p>
   </section>
 
   <script src="common.js"></script>
+  <script src="icons.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
