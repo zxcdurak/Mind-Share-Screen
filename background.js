@@ -1,8 +1,8 @@
 'use strict';
 
-// Reminders. Everything here is optional: browser.alarms and
-// browser.notifications only exist after the user grants the optional
-// permissions from the reminders page, so without them this script is idle.
+// Reminders. Everything here is opt-in: browser.notifications only exists
+// after the user grants the optional "notifications" permission from the
+// reminders page, and without it this script creates no alarms and is idle.
 
 const ALARM_PREFIX = 'r|';
 const NOTIFICATION_PREFIX = 'conf|';
@@ -65,8 +65,21 @@ function addListeners() {
     }
 }
 
+async function clearOurAlarms() {
+    for (const alarm of await browser.alarms.getAll()) {
+        if (alarm.name.startsWith(ALARM_PREFIX)) await browser.alarms.clear(alarm.name);
+    }
+}
+
 async function reschedule() {
     if (!browser.alarms) return;
+
+    // "alarms" is a normal permission, so the user's opt-in is the optional
+    // "notifications" permission: without it we never create an alarm.
+    if (!browser.notifications) {
+        await clearOurAlarms();
+        return;
+    }
     addListeners();
 
     const { favorites, lead } = await loadState();
@@ -94,6 +107,7 @@ browser.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && (changes.favorites || changes.reminderLead)) reschedule();
 });
 browser.permissions.onAdded.addListener(reschedule);
+browser.permissions.onRemoved.addListener(reschedule);
 browser.runtime.onStartup.addListener(reschedule);
 browser.runtime.onInstalled.addListener(reschedule);
 browser.runtime.onMessage.addListener(message => {

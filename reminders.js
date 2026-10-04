@@ -2,7 +2,8 @@
 
 const { DAYS, MAX_SLOTS, DEFAULT_LEAD, MAX_LEAD, newId, clampLead, sanitizeSlots } = MindCommon;
 
-const PERMS = { permissions: ['alarms', 'notifications'] };
+// Only "notifications" can be optional in Firefox ("alarms" is a regular permission).
+const PERMS = { permissions: ['notifications'] };
 const $ = id => document.getElementById(id);
 
 let favorites = [];
@@ -75,7 +76,7 @@ async function renderPermissions() {
 
         const text = document.createElement('p');
         text.className = 'muted';
-        text.textContent = 'Расширение работает и без напоминаний. Если включить их, Firefox спросит разрешение на уведомления и будильники — они нужны только для этого. Выключить можно в любой момент.';
+        text.textContent = 'Расширение работает и без напоминаний. Если включить их, Firefox спросит разрешение на показ уведомлений — оно нужно только для этого. Выключить можно в любой момент.';
         box.append(text);
         return;
     }
