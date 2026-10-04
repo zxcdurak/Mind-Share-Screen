@@ -158,7 +158,28 @@ transferBtn.addEventListener('click', async () => {
     await browser.tabs.create({ url: browser.runtime.getURL('transfer.html') });
     window.close();
 });
-$('transferSlot').append(transferBtn);
+
+// Theme switcher: one button that cycles dark -> light -> system.
+const THEME_ICONS = { dark: 'moon', light: 'sun', system: 'monitor' };
+const themeBtn = document.createElement('button');
+themeBtn.type = 'button';
+themeBtn.id = 'themeBtn';
+themeBtn.className = 'icon-btn';
+
+function renderThemeButton() {
+    const mode = MindTheme.mode;
+    const label = 'Тема: ' + MindTheme.LABELS[mode] + '. Нажмите, чтобы сменить на «' + MindTheme.LABELS[MindTheme.nextMode()] + '»';
+    themeBtn.title = label;
+    themeBtn.setAttribute('aria-label', label);
+    themeBtn.replaceChildren(MindIcons.create(THEME_ICONS[mode]));
+}
+themeBtn.addEventListener('click', () => {
+    MindTheme.setMode(MindTheme.nextMode());
+    renderThemeButton();
+});
+renderThemeButton();
+
+$('headerButtons').append(themeBtn, transferBtn);
 
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });

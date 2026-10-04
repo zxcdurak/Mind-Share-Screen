@@ -10,6 +10,8 @@ header {
   margin-bottom: 14px;
 }
 
+.header-buttons { display: inline-flex; gap: 2px; }
+
 .block + .block {
   margin-top: 16px;
   padding-top: 14px;

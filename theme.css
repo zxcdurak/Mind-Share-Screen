@@ -9,6 +9,7 @@
   --c4: #9BA8AB;
   --c5: #CCD0CF;
 
+  /* Dark theme (default): roles of the palette colours. */
   --bg: var(--c0);
   --surface: var(--c1);
   --raised: var(--c2);
@@ -17,6 +18,20 @@
   --muted: var(--c4);
   --fg: var(--c5);
   --on-fg: var(--c0);
+}
+
+/* Light theme: the same six colours with the roles swapped. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: var(--c5);
+  --surface: var(--c5);
+  --raised: var(--c4);
+  --border: var(--c4);
+  --border-strong: var(--c3);
+  --muted: var(--c2);
+  --fg: var(--c0);
+  --on-fg: var(--c5);
 }
 
 * { box-sizing: border-box; }
@@ -48,9 +63,8 @@ input[type="time"] {
   color: var(--fg);
   font: inherit;
 }
-input::placeholder { color: var(--c3); opacity: 1; }
+input::placeholder { color: var(--muted); opacity: 0.85; }
 input:focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; border-color: var(--muted); }
-input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.75); }
 
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; }
