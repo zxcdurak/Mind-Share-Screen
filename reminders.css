@@ -54,11 +54,11 @@ section h2 { margin-bottom: 6px; }
   padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
-  background: var(--raised);
+  background: var(--chip);
   color: var(--fg);
   font-size: 12px;
 }
-.day:hover { border-color: var(--muted); }
+.day:hover { border-color: var(--muted); background: var(--raised); }
 .day[aria-pressed="true"] { border-color: var(--fg); background: var(--fg); color: var(--on-fg); font-weight: 600; }
 
 .slot input[type="time"] { width: auto; }

@@ -18,6 +18,7 @@
   --muted: var(--c4);
   --fg: var(--c5);
   --on-fg: var(--c0);
+  --chip: var(--c2);   /* fill of unselected toggle buttons */
 }
 
 /* Light theme: the same six colours with the roles swapped. */
@@ -32,6 +33,7 @@
   --muted: var(--c2);
   --fg: var(--c0);
   --on-fg: var(--c5);
+  --chip: var(--c5);   /* #CCD0CF stays the main fill; #9BA8AB is only for hairlines and hover */
 }
 
 * { box-sizing: border-box; }
