@@ -21,19 +21,19 @@
   --chip: var(--c2);   /* fill of unselected toggle buttons */
 }
 
-/* Light theme: the same six colours with the roles swapped. */
+/* Light theme: the page is #F2F2F5, everything else comes from the palette. */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: var(--c5);
-  --surface: var(--c5);
-  --raised: var(--c4);
-  --border: var(--c4);
+  --bg: #F2F2F5;
+  --surface: var(--bg);
+  --raised: var(--c5);        /* hover fills */
+  --border: var(--c4);        /* hairlines */
   --border-strong: var(--c3);
   --muted: var(--c2);
   --fg: var(--c0);
-  --on-fg: var(--c5);
-  --chip: var(--c5);   /* #CCD0CF stays the main fill; #9BA8AB is only for hairlines and hover */
+  --on-fg: var(--bg);         /* text on the dark primary button */
+  --chip: var(--c5);          /* fill of unselected toggle buttons */
 }
 
 * { box-sizing: border-box; }
