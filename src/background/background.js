@@ -2,7 +2,7 @@
 
 // Reminders. Everything here is opt-in: browser.notifications only exists
 // after the user grants the optional "notifications" permission from the
-// reminders page, and without it this script creates no alarms and is idle.
+// notifications page, and without it this script creates no alarms and is idle.
 
 const ALARM_PREFIX = 'r|';
 const NOTIFICATION_PREFIX = 'conf|';

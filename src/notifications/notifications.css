@@ -88,3 +88,4 @@ section h2 { margin-bottom: 6px; }
 
 #chat a { color: var(--muted); font-size: 12px; }
 #chat a:hover { color: var(--fg); }
+#chat a { display: inline-block; margin-top: 6px; }

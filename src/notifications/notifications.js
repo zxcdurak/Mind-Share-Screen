@@ -56,7 +56,7 @@ async function renderPermissions() {
     status.className = 'status';
     const badge = document.createElement('span');
     badge.className = 'badge ' + (granted ? 'on' : 'off');
-    badge.textContent = granted ? 'Напоминания включены' : 'Напоминания выключены';
+    badge.textContent = granted ? 'Уведомления включены' : 'Уведомления выключены';
     status.append(badge);
 
     const button = document.createElement('button');
@@ -64,7 +64,7 @@ async function renderPermissions() {
 
     if (!granted) {
         button.className = 'btn primary';
-        button.textContent = 'Включить напоминания';
+        button.textContent = 'Включить уведомления';
         // permissions.request() must be called straight from the click handler.
         button.addEventListener('click', () => {
             browser.permissions.request(PERMS).then(async ok => {
@@ -77,13 +77,13 @@ async function renderPermissions() {
 
         const text = document.createElement('p');
         text.className = 'hint';
-        text.textContent = 'Расширение работает и без напоминаний. Если включить их, Firefox спросит разрешение на показ уведомлений — оно нужно только для этого. Выключить можно в любой момент.';
+        text.textContent = 'Расширение работает и без уведомлений. Если включить их, Firefox спросит разрешение на показ уведомлений. Оно нужно для напоминаний о конференциях и для сообщений чата, пока вкладка в фоне. Выключить можно в любой момент.';
         box.append(text);
         return;
     }
 
     button.className = 'btn';
-    button.textContent = 'Отключить напоминания';
+    button.textContent = 'Отключить уведомления';
     button.addEventListener('click', async () => {
         try { await browser.alarms.clearAll(); } catch (e) { /* already gone */ }
         await browser.permissions.remove(PERMS);
@@ -134,7 +134,7 @@ async function renderChat(granted) {
     const hint = document.createElement('p');
     hint.className = 'hint';
     hint.textContent = 'В заголовке вкладки появится счётчик «(N)». Уведомления не засоряют экран: при потоке сообщений обновляются число и текст одного и того же уведомления, не чаще раза в секунду.'
-        + (granted ? '' : ' Чтобы получать и всплывающие уведомления, включите напоминания выше (разрешение на уведомления общее).');
+        + (granted ? '' : ' Чтобы получать и всплывающие уведомления, включите уведомления выше.');
     const diag = document.createElement('a');
     diag.href = '../diagnostics/diagnostics.html';
     diag.textContent = 'Диагностика';

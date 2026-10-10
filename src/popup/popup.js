@@ -41,11 +41,6 @@ async function openFavorite(fav) {
     window.close();
 }
 
-async function openReminders(fav) {
-    await browser.tabs.create({ url: browser.runtime.getURL('src/reminders/reminders.html') + '#' + encodeURIComponent(fav.id) });
-    window.close();
-}
-
 function scheduleSummary(fav) {
     const slots = MindCommon.sanitizeSlots(fav.slots);
     if (!slots.length) return 'Напоминания: расписание не задано';
@@ -102,7 +97,8 @@ function render() {
         const open = document.createElement('button');
         open.type = 'button';
         open.className = 'open';
-        open.title = 'Войти по номеру ' + fav.number;
+        open.title = 'Войти по номеру ' + fav.number
+            + (MindCommon.sanitizeSlots(fav.slots).length ? '\n' + scheduleSummary(fav) : '');
         open.addEventListener('click', () => openFavorite(fav));
 
         const name = document.createElement('span');
@@ -113,17 +109,13 @@ function render() {
         num.textContent = formatNumber(fav.number);
         open.append(name, num);
 
-        const hasSchedule = MindCommon.sanitizeSlots(fav.slots).length > 0;
-        const clock = MindIcons.button('clock', scheduleSummary(fav), hasSchedule ? 'active' : '');
-        clock.addEventListener('click', () => openReminders(fav));
-
         const rename = MindIcons.button('pencil', 'Переименовать');
         rename.addEventListener('click', () => startRename(li, fav));
 
         const del = MindIcons.button('close', 'Удалить');
         del.addEventListener('click', () => remove(fav));
 
-        li.append(open, clock, rename, del);
+        li.append(open, rename, del);
         list.append(li);
     }
 }
@@ -179,13 +171,19 @@ themeBtn.addEventListener('click', () => {
 });
 renderThemeButton();
 
+const bellBtn = MindIcons.button('bell', 'Уведомления и напоминания');
+bellBtn.addEventListener('click', async () => {
+    await browser.tabs.create({ url: browser.runtime.getURL('src/notifications/notifications.html') });
+    window.close();
+});
+
 const diagBtn = MindIcons.button('pulse', 'Диагностика');
 diagBtn.addEventListener('click', async () => {
     await browser.tabs.create({ url: browser.runtime.getURL('src/diagnostics/diagnostics.html') });
     window.close();
 });
 
-$('headerButtons').append(themeBtn, diagBtn, transferBtn);
+$('headerButtons').append(themeBtn, bellBtn, diagBtn, transferBtn);
 
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });
