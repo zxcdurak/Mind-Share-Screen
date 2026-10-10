@@ -58,6 +58,13 @@
             e => MindDiag.log('content', 'chat x' + count + ': could not reach the background page: ' + (e && e.message), 'notify'));
     }
 
+    const loggedOnce = new Set();
+    function logOnce(key, text) {
+        if (loggedOnce.has(key)) return;
+        loggedOnce.add(key);
+        MindDiag.log('content', text, 'notify');
+    }
+
     function note(text) {
         unread++;
         lastText = text.slice(0, MAX_TEXT);
@@ -92,6 +99,16 @@
         if (!text) return;                       // filled in later: seen again then
         counted.add(card);
         if (performance.now() - panelSince < GRACE_MS) return;
+
+        // Count only what the user can miss: notifications switched on and the tab in the background.
+        if (!enabled) {
+            logOnce('off', 'сообщение в чате замечено, но уведомления о чате выключены (флажок на странице напоминаний)');
+            return;
+        }
+        if (!document.hidden) {
+            logOnce('visible', 'сообщение в чате замечено, вкладка на виду: уведомление не нужно');
+            return;
+        }
 
         const nameEl = card.querySelector('[imarker="userName"]');
         // "(10:39) Name: " -> "Name"
