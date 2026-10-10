@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Диагностика</title>
+  <script src="../shared/theme.js"></script>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="diagnostics.css">
+</head>
+<body>
+  <main>
+    <h1>Диагностика</h1>
+
+    <section>
+      <h2>Состояние</h2>
+      <dl id="state"></dl>
+    </section>
+
+    <section>
+      <h2>Проверка уведомлений</h2>
+      <p class="hint">Показывает тестовое уведомление и сообщает, подтвердил ли Firefox его показ. Если Firefox подтвердил, а на экране ничего нет, уведомления блокирует система: в Windows это «Фокусировка внимания» / «Не беспокоить» и настройки уведомлений для Firefox.</p>
+      <button id="testBtn" class="btn primary" type="button">Показать тестовое уведомление</button>
+      <p id="testResult" class="result" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Журнал событий</h2>
+      <p class="hint">Только технические пометки: счётчики и названия ошибок. Тексты сообщений, имена и номера конференций сюда не записываются.</p>
+      <div class="actions">
+        <button id="refreshBtn" class="btn" type="button">Обновить</button>
+        <button id="copyBtn" class="btn" type="button">Скопировать всё</button>
+        <button id="clearBtn" class="btn" type="button">Очистить журнал</button>
+      </div>
+      <ol id="log" class="log"></ol>
+      <p id="empty" class="hint" hidden>Журнал пуст.</p>
+    </section>
+  </main>
+  <script src="../shared/diag.js"></script>
+  <script src="diagnostics.js"></script>
+</body>
+</html>

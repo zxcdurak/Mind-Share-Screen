@@ -7,6 +7,7 @@
 const ALARM_PREFIX = 'r|';
 const NOTIFICATION_PREFIX = 'conf|';
 const CHAT_NOTIFICATION_ID = 'mind-chat';
+const TEST_NOTIFICATION_ID = 'mind-test';
 const LATE_LIMIT_MS = 10 * 60 * 1000;
 
 let alarmListenerAdded = false;
@@ -52,20 +53,57 @@ async function onAlarm(alarm) {
 // Chat notifications (opt-in, see chatnotify.js). One fixed notification id, so
 // repeated updates replace the previous notification instead of stacking.
 async function onChatMessage(message, sender) {
-    if (!browser.notifications || !sender || !sender.tab) return;
-    const { chatNotify } = await browser.storage.local.get('chatNotify');
-    if (chatNotify !== true) return;
-
     const count = Math.min(9999, Math.max(1, Math.floor(Number(message.count)) || 1));
+    if (!browser.notifications) {
+        MindDiag.log('bg', 'chat x' + count + ': skipped, browser.notifications is not available (permission missing?)');
+        return;
+    }
+    if (!sender || !sender.tab) {
+        MindDiag.log('bg', 'chat x' + count + ': skipped, message did not come from a tab');
+        return;
+    }
+    const { chatNotify } = await browser.storage.local.get('chatNotify');
+    if (chatNotify !== true) {
+        MindDiag.log('bg', 'chat x' + count + ': skipped, chat notifications are switched off');
+        return;
+    }
+
     const text = String(message.text || '').slice(0, 140);
     addListeners();
     chatTarget = { tabId: sender.tab.id, windowId: sender.tab.windowId };
-    await browser.notifications.create(CHAT_NOTIFICATION_ID, {
-        type: 'basic',
-        iconUrl: browser.runtime.getURL('icons/icon96.png'),
-        title: count === 1 ? 'i.Mind: новое сообщение' : 'i.Mind: новых сообщений: ' + count,
-        message: text || 'Откройте вкладку с конференцией.'
-    });
+    try {
+        await browser.notifications.create(CHAT_NOTIFICATION_ID, {
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('icons/icon96.png'),
+            title: count === 1 ? 'i.Mind: новое сообщение' : 'i.Mind: новых сообщений: ' + count,
+            message: text || 'Откройте вкладку с конференцией.'
+        });
+        MindDiag.log('bg', 'chat x' + count + ': notifications.create succeeded');
+    } catch (e) {
+        MindDiag.log('bg', 'chat x' + count + ': notifications.create failed: ' + (e && e.message));
+    }
+}
+
+// Diagnostics page: state of the background page and a test notification.
+async function sendTestNotification() {
+    if (!browser.notifications) {
+        MindDiag.log('bg', 'test: browser.notifications is not available (permission missing?)');
+        return false;
+    }
+    addListeners();
+    try {
+        await browser.notifications.create(TEST_NOTIFICATION_ID, {
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('icons/icon96.png'),
+            title: 'Mind for Firefox',
+            message: 'Проверка уведомлений: если вы это видите, всё работает.'
+        });
+        MindDiag.log('bg', 'test: notifications.create succeeded');
+        return true;
+    } catch (e) {
+        MindDiag.log('bg', 'test: notifications.create failed: ' + (e && e.message));
+        return false;
+    }
 }
 
 async function onChatClicked() {
@@ -93,6 +131,13 @@ function addListeners() {
     if (browser.notifications && !notificationListenerAdded) {
         notificationListenerAdded = true;
         browser.notifications.onClicked.addListener(onNotificationClicked);
+        // Firefox reports when the system actually showed / dismissed a notification.
+        if (browser.notifications.onShown) {
+            browser.notifications.onShown.addListener(id => MindDiag.log('bg', 'Firefox reports notification shown: ' + id));
+        }
+        if (browser.notifications.onClosed) {
+            browser.notifications.onClosed.addListener((id, byUser) => MindDiag.log('bg', 'notification closed: ' + id + (byUser ? ' (by user)' : '')));
+        }
     }
 }
 
@@ -144,6 +189,8 @@ browser.runtime.onInstalled.addListener(reschedule);
 browser.runtime.onMessage.addListener((message, sender) => {
     if (message && message.type === 'reschedule') return reschedule();
     if (message && message.type === 'chat') return onChatMessage(message, sender);
+    if (message && message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, alarmsApi: !!browser.alarms });
+    if (message && message.type === 'diagTest') return sendTestNotification();
     if (message && message.type === 'chatClear' && browser.notifications) return browser.notifications.clear(CHAT_NOTIFICATION_ID);
 });
 

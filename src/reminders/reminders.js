@@ -135,7 +135,10 @@ async function renderChat(granted) {
     hint.className = 'hint';
     hint.textContent = 'В заголовке вкладки появится счётчик «(N)». Уведомления не засоряют экран: при потоке сообщений обновляются число и текст одного и того же уведомления, не чаще раза в секунду.'
         + (granted ? '' : ' Чтобы получать и всплывающие уведомления, включите напоминания выше (разрешение на уведомления общее).');
-    box.append(h, label, hint);
+    const diag = document.createElement('a');
+    diag.href = '../diagnostics/diagnostics.html';
+    diag.textContent = 'Диагностика уведомлений';
+    box.append(h, label, hint, diag);
 }
 
 // ---------- schedule builder ----------
