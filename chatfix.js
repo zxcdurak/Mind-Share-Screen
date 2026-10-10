@@ -55,6 +55,7 @@
                 f.src = 'about:blank';
             } else {
                 log('giving up');
+                window.postMessage({ source: 'mind-ff-fix', type: 'problem', code: 'chat-stuck' }, '*');
                 clearInterval(timer);
             }
         } catch (e) {

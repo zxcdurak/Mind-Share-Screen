@@ -9,6 +9,20 @@
 
     const nav = navigator;
 
+    // Tells the content script (notice.js) that something the extension relies
+    // on is not behaving as expected, so the user sees a message instead of a
+    // silent failure. Only a fixed problem code is sent, never page data.
+    const reported = {};
+    function report(code) {
+        if (reported[code]) return;
+        reported[code] = true;
+        window.postMessage({ source: 'mind-ff-fix', type: 'problem', code: code }, '*');
+    }
+    // After the user picked a screen, the site must ask for the stream through
+    // legacyGetUserMedia within this time, otherwise its protocol has changed.
+    const STREAM_REQUEST_TIMEOUT_MS = 15000;
+    let streamWatch = null;
+
     // ---------------------------------------------------------------
     // 1. i.Mind hides the "share screen" button entirely unless
     //    navigator.userAgent looks like Chrome/IE/Yandex. We spoof it
@@ -48,16 +62,29 @@
         if (data.type === 'getScreen') {
             const id = counter++;
 
-            const streamPromise = nav.mediaDevices.getDisplayMedia({ video: true, audio: true })
-                .catch(function (err) {
-                    console.warn('[i.Mind FF fix] getDisplayMedia failed:', err);
-                    return null;
-                });
+            let streamPromise;
+            if (nav.mediaDevices && typeof nav.mediaDevices.getDisplayMedia === 'function') {
+                streamPromise = nav.mediaDevices.getDisplayMedia({ video: true, audio: true })
+                    .catch(function (err) {
+                        console.warn('[i.Mind FF fix] getDisplayMedia failed:', err);
+                        // Cancelling the picker is a normal outcome, not a problem.
+                        const name = err && err.name;
+                        if (name !== 'NotAllowedError' && name !== 'AbortError' && name !== 'NotReadableError') report('share-failed');
+                        return null;
+                    });
+            } else {
+                report('no-display-media');
+                streamPromise = Promise.resolve(null);
+            }
             pendingStreams.set(id, streamPromise);
 
             window.postMessage(Object.assign({}, data, { type: 'getScreenPending', request: id }), '*');
 
             streamPromise.then(function (stream) {
+                if (stream) {
+                    clearTimeout(streamWatch);
+                    streamWatch = setTimeout(function () { report('share-protocol'); }, STREAM_REQUEST_TIMEOUT_MS);
+                }
                 window.postMessage(Object.assign({}, data, {
                     type: 'gotScreen',
                     sourceId: stream ? ('firefox-native-' + id) : ''
@@ -86,6 +113,7 @@
         const isDesktopCapture = v && v.mandatory && v.mandatory.chromeMediaSource === 'desktop';
 
         if (isDesktopCapture) {
+            clearTimeout(streamWatch);
             const last = Array.from(pendingStreams.values()).pop();
             if (last) {
                 last.then(function (stream) {
