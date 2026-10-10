@@ -179,7 +179,13 @@ themeBtn.addEventListener('click', () => {
 });
 renderThemeButton();
 
-$('headerButtons').append(themeBtn, transferBtn);
+const diagBtn = MindIcons.button('pulse', 'Диагностика');
+diagBtn.addEventListener('click', async () => {
+    await browser.tabs.create({ url: browser.runtime.getURL('src/diagnostics/diagnostics.html') });
+    window.close();
+});
+
+$('headerButtons').append(themeBtn, diagBtn, transferBtn);
 
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });

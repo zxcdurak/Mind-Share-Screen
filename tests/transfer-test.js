@@ -14,6 +14,7 @@ function run(initial) {
     Date, JSON, Math, Map, Set, Array, String, Number, Object, Error, Promise, setTimeout, console
   });
   vm.runInContext(read('shared/common.js'), ctx);
+  vm.runInContext(read('shared/diag.js'), ctx);
   vm.runInContext(read('transfer/transfer.js').replace(/^'use strict';/, ''), ctx);
   return { els, store, captured };
 }

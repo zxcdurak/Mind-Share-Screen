@@ -32,6 +32,7 @@ async function onAlarm(alarm) {
     const late = Date.now() - alarm.scheduledTime;
 
     try {
+        if (late > LATE_LIMIT_MS) MindDiag.log('bg', 'напоминание пропущено: опоздание ' + Math.round(late / 60000) + ' мин.', 'remind');
         if (browser.notifications && late <= LATE_LIMIT_MS) {
             const { favorites, lead } = await loadState();
             const fav = favorites.find(f => f.id === favId);
@@ -43,6 +44,7 @@ async function onAlarm(alarm) {
                     title: fav.title || 'Конференция ' + fav.number,
                     message: timeLabel(slot.time, lead) + '. Нажмите, чтобы войти.'
                 });
+                MindDiag.log('bg', 'напоминание показано', 'remind');
             }
         }
     } finally {
@@ -55,16 +57,16 @@ async function onAlarm(alarm) {
 async function onChatMessage(message, sender) {
     const count = Math.min(9999, Math.max(1, Math.floor(Number(message.count)) || 1));
     if (!browser.notifications) {
-        MindDiag.log('bg', 'chat x' + count + ': skipped, browser.notifications is not available (permission missing?)');
+        MindDiag.log('bg', 'chat x' + count + ': skipped, browser.notifications is not available (permission missing?)', 'notify');
         return;
     }
     if (!sender || !sender.tab) {
-        MindDiag.log('bg', 'chat x' + count + ': skipped, message did not come from a tab');
+        MindDiag.log('bg', 'chat x' + count + ': skipped, message did not come from a tab', 'notify');
         return;
     }
     const { chatNotify } = await browser.storage.local.get('chatNotify');
     if (chatNotify !== true) {
-        MindDiag.log('bg', 'chat x' + count + ': skipped, chat notifications are switched off');
+        MindDiag.log('bg', 'chat x' + count + ': skipped, chat notifications are switched off', 'notify');
         return;
     }
 
@@ -78,16 +80,16 @@ async function onChatMessage(message, sender) {
             title: count === 1 ? 'i.Mind: новое сообщение' : 'i.Mind: новых сообщений: ' + count,
             message: text || 'Откройте вкладку с конференцией.'
         });
-        MindDiag.log('bg', 'chat x' + count + ': notifications.create succeeded');
+        MindDiag.log('bg', 'chat x' + count + ': notifications.create succeeded', 'notify');
     } catch (e) {
-        MindDiag.log('bg', 'chat x' + count + ': notifications.create failed: ' + (e && e.message));
+        MindDiag.log('bg', 'chat x' + count + ': notifications.create failed: ' + (e && e.message), 'notify');
     }
 }
 
 // Diagnostics page: state of the background page and a test notification.
 async function sendTestNotification() {
     if (!browser.notifications) {
-        MindDiag.log('bg', 'test: browser.notifications is not available (permission missing?)');
+        MindDiag.log('bg', 'test: browser.notifications is not available (permission missing?)', 'notify');
         return false;
     }
     addListeners();
@@ -98,10 +100,10 @@ async function sendTestNotification() {
             title: 'Mind for Firefox',
             message: 'Проверка уведомлений: если вы это видите, всё работает.'
         });
-        MindDiag.log('bg', 'test: notifications.create succeeded');
+        MindDiag.log('bg', 'test: notifications.create succeeded', 'notify');
         return true;
     } catch (e) {
-        MindDiag.log('bg', 'test: notifications.create failed: ' + (e && e.message));
+        MindDiag.log('bg', 'test: notifications.create failed: ' + (e && e.message), 'notify');
         return false;
     }
 }
@@ -133,10 +135,10 @@ function addListeners() {
         browser.notifications.onClicked.addListener(onNotificationClicked);
         // Firefox reports when the system actually showed / dismissed a notification.
         if (browser.notifications.onShown) {
-            browser.notifications.onShown.addListener(id => MindDiag.log('bg', 'Firefox reports notification shown: ' + id));
+            browser.notifications.onShown.addListener(id => MindDiag.log('bg', 'Firefox reports notification shown: ' + id, 'notify'));
         }
         if (browser.notifications.onClosed) {
-            browser.notifications.onClosed.addListener((id, byUser) => MindDiag.log('bg', 'notification closed: ' + id + (byUser ? ' (by user)' : '')));
+            browser.notifications.onClosed.addListener((id, byUser) => MindDiag.log('bg', 'notification closed: ' + id + (byUser ? ' (by user)' : ''), 'notify'));
         }
     }
 }
@@ -177,13 +179,14 @@ async function reschedule() {
         else await browser.alarms.clear(alarm.name);
     }
     for (const [name, when] of wanted) browser.alarms.create(name, { when });
+    if (wanted.size) MindDiag.log('bg', 'запланировано напоминаний: ' + wanted.size, 'remind');
 }
 
 browser.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && (changes.favorites || changes.reminderLead)) reschedule();
 });
-browser.permissions.onAdded.addListener(reschedule);
-browser.permissions.onRemoved.addListener(reschedule);
+browser.permissions.onAdded.addListener(() => { MindDiag.log('bg', 'разрешение выдано', 'remind'); return reschedule(); });
+browser.permissions.onRemoved.addListener(() => { MindDiag.log('bg', 'разрешение снято', 'remind'); return reschedule(); });
 browser.runtime.onStartup.addListener(reschedule);
 browser.runtime.onInstalled.addListener(reschedule);
 browser.runtime.onMessage.addListener((message, sender) => {
@@ -194,4 +197,5 @@ browser.runtime.onMessage.addListener((message, sender) => {
     if (message && message.type === 'chatClear' && browser.notifications) return browser.notifications.clear(CHAT_NOTIFICATION_ID);
 });
 
+MindDiag.log('bg', 'фоновая страница запущена', 'page');
 reschedule();

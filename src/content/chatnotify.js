@@ -54,8 +54,8 @@
         lastSent = Date.now();
         const count = unread;
         browser.runtime.sendMessage({ type: 'chat', count, text: lastText }).then(
-            () => MindDiag.log('content', 'chat x' + count + ': passed to the background page'),
-            e => MindDiag.log('content', 'chat x' + count + ': could not reach the background page: ' + (e && e.message)));
+            () => MindDiag.log('content', 'chat x' + count + ': passed to the background page', 'notify'),
+            e => MindDiag.log('content', 'chat x' + count + ': could not reach the background page: ' + (e && e.message), 'notify'));
     }
 
     function note(text) {

@@ -137,7 +137,7 @@ async function renderChat(granted) {
         + (granted ? '' : ' Чтобы получать и всплывающие уведомления, включите напоминания выше (разрешение на уведомления общее).');
     const diag = document.createElement('a');
     diag.href = '../diagnostics/diagnostics.html';
-    diag.textContent = 'Диагностика уведомлений';
+    diag.textContent = 'Диагностика';
     box.append(h, label, hint, diag);
 }
 

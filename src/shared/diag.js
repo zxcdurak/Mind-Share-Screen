@@ -4,11 +4,12 @@
 // names); message texts, names and conference numbers never are.
 const MindDiag = (() => {
     const KEY = 'diagLog';
-    const MAX = 60;
+    const MAX = 150;
     let chain = Promise.resolve();
 
-    function log(source, text) {
-        const entry = { t: Date.now(), s: source, m: String(text).slice(0, 300) };
+    // kind groups entries by feature: share, chat, notify, remind, data, page, problem.
+    function log(source, text, kind) {
+        const entry = { t: Date.now(), s: source, k: kind || 'page', m: String(text).slice(0, 300) };
         chain = chain.then(async () => {
             const stored = await browser.storage.local.get(KEY);
             const list = Array.isArray(stored[KEY]) ? stored[KEY] : [];

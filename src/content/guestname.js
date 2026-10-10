@@ -21,6 +21,7 @@
     const name = pending.name.replace(/,/g, ' ').trim();
     if (!name || Date.now() - pending.at > MAX_AGE_MS) {
         browser.storage.local.remove('pendingJoin');
+        MindDiag.log('content', 'вход гостем: заявка устарела, имя не подставлено', 'data');
         return;
     }
 
@@ -41,6 +42,7 @@
         const match = JOIN_HASH.exec(location.hash);
         if (!match) return;
         finish();
+        MindDiag.log('content', 'вход гостем: имя подставлено в адрес', 'data');
         location.hash = '#join:' + match[1] + ',true,' + encodeURIComponent(name);
     }
 

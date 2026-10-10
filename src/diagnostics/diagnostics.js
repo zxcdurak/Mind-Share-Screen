@@ -3,14 +3,29 @@
 const $ = id => document.getElementById(id);
 const PERMS = { permissions: ['notifications'] };
 
+// Log entry kinds -> what the user sees.
+const KINDS = [
+    ['page', 'Страница e-class'],
+    ['share', 'Демонстрация экрана'],
+    ['chat', 'Починка поля ввода чата'],
+    ['notify', 'Уведомления о чате'],
+    ['remind', 'Напоминания'],
+    ['data', 'Избранное, импорт, вход гостем'],
+    ['problem', 'Проблемы']
+];
+
 const pad = n => String(n).padStart(2, '0');
 function clock(t) {
     const d = new Date(t);
     return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
+function dateTime(t) {
+    const d = new Date(t);
+    return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + ' ' + clock(t);
+}
 
 function logLine(e) {
-    return clock(e.t) + ' [' + e.s + '] ' + e.m;
+    return dateTime(e.t) + ' [' + e.s + '/' + (e.k || 'page') + '] ' + e.m;
 }
 
 async function collectState() {
@@ -25,27 +40,51 @@ async function collectState() {
     } catch (e) {
         add('Браузер', navigator.userAgent);
     }
+    add('Тема', MindTheme.LABELS[MindTheme.mode]);
+
+    const stored = await browser.storage.local.get(['favorites', 'guestName', 'chatNotify', 'reminderLead']);
+    const favorites = Array.isArray(stored.favorites) ? stored.favorites : [];
+    const scheduled = favorites.filter(f => f && MindCommon.sanitizeSlots(f.slots).length).length;
+    add('Избранное', favorites.length + ', с расписанием: ' + scheduled);
+    add('Имя для входа гостем', stored.guestName ? 'задано' : 'не задано');
 
     let granted = false;
     try { granted = await browser.permissions.contains(PERMS); } catch (e) { /* ignore */ }
-    add('Разрешение на уведомления', granted ? 'выдано' : 'не выдано', !granted);
+    add('Разрешение на уведомления', granted ? 'выдано' : 'не выдано (напоминания и уведомления чата выключены)');
 
-    const stored = await browser.storage.local.get('chatNotify');
-    add('Флажок «сообщения чата»', stored.chatNotify === true ? 'включён' : 'выключен');
+    if (granted) {
+        try {
+            const alarms = (await browser.alarms.getAll()).filter(a => a.name.startsWith('r|'));
+            const next = alarms.length ? Math.min(...alarms.map(a => a.scheduledTime)) : 0;
+            add('Напоминания', 'запланировано: ' + alarms.length + (next ? ', ближайшее: ' + dateTime(next) : ''));
+        } catch (e) {
+            add('Напоминания', 'не удалось прочитать будильники: ' + (e && e.message), true);
+        }
+    }
+    add('Уведомления о новых сообщениях чата', stored.chatNotify === true ? 'включены' : 'выключены');
 
     try {
         const bg = await browser.runtime.sendMessage({ type: 'diagState' });
-        add('Фоновая страница видит API уведомлений', bg && bg.notificationsApi ? 'да' : 'нет', !(bg && bg.notificationsApi));
+        add('Фоновая страница', bg ? 'работает' + (bg.notificationsApi ? ', API уведомлений доступен' : ', API уведомлений недоступен') : 'ответила пусто', !bg);
     } catch (e) {
         add('Фоновая страница', 'не отвечает: ' + (e && e.message), true);
     }
     return rows;
 }
 
-async function renderState() {
-    const dl = $('state');
+function featureRows(entries) {
+    return KINDS.map(([kind, name]) => {
+        const mine = entries.filter(e => (e.k || 'page') === kind);
+        const last = mine[mine.length - 1];
+        if (kind === 'problem') {
+            return { name, value: last ? mine.length + ', последняя: ' + dateTime(last.t) + ' — ' + last.m : 'не обнаружено', bad: !!last };
+        }
+        return { name, value: last ? dateTime(last.t) + ' — ' + last.m : 'событий не было', bad: false };
+    });
+}
+
+function fill(dl, rows) {
     dl.textContent = '';
-    const rows = await collectState();
     for (const r of rows) {
         const dt = document.createElement('dt');
         dt.textContent = r.name;
@@ -56,8 +95,29 @@ async function renderState() {
     }
 }
 
+function setupFilter() {
+    const select = $('filter');
+    const all = document.createElement('option');
+    all.value = '';
+    all.textContent = 'Все события';
+    select.append(all);
+    for (const [kind, name] of KINDS) {
+        const o = document.createElement('option');
+        o.value = kind;
+        o.textContent = name;
+        select.append(o);
+    }
+    select.addEventListener('change', renderLog);
+}
+
+async function renderState() {
+    fill($('state'), await collectState());
+    fill($('features'), featureRows(await MindDiag.read()));
+}
+
 async function renderLog() {
-    const entries = await MindDiag.read();
+    const kind = $('filter').value;
+    const entries = (await MindDiag.read()).filter(e => !kind || (e.k || 'page') === kind);
     const list = $('log');
     list.textContent = '';
     $('empty').hidden = entries.length > 0;
@@ -66,11 +126,12 @@ async function renderLog() {
         const li = document.createElement('li');
         const src = document.createElement('span');
         src.className = 'src';
-        src.textContent = clock(e.t) + ' [' + e.s + '] ';
+        src.textContent = dateTime(e.t) + ' [' + e.s + '] ';
         li.append(src, e.m);
         list.append(li);
     }
     list.scrollTop = list.scrollHeight;
+    fill($('features'), featureRows(await MindDiag.read()));
 }
 
 $('testBtn').addEventListener('click', async () => {
@@ -99,13 +160,16 @@ $('refreshBtn').addEventListener('click', () => { renderState(); renderLog(); })
 
 $('clearBtn').addEventListener('click', async () => {
     await MindDiag.clear();
+    await renderState();
     await renderLog();
 });
 
 $('copyBtn').addEventListener('click', async () => {
     const rows = await collectState();
     const entries = await MindDiag.read();
-    const text = rows.map(r => r.name + ': ' + r.value).join('\n') + '\n\n' + entries.map(logLine).join('\n');
+    const text = rows.map(r => r.name + ': ' + r.value).join('\n')
+        + '\n\n' + featureRows(entries).map(r => r.name + ': ' + r.value).join('\n')
+        + '\n\n' + entries.map(logLine).join('\n');
     try {
         await navigator.clipboard.writeText(text);
         $('copyBtn').textContent = 'Скопировано';
@@ -120,6 +184,7 @@ browser.storage.onChanged.addListener((changes, area) => {
 });
 
 (async function init() {
+    setupFilter();
     await renderState();
     await renderLog();
 })();

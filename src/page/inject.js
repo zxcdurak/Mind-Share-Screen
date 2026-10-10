@@ -12,6 +12,9 @@
     // Tells the content script (notice.js) that something the extension relies
     // on is not behaving as expected, so the user sees a message instead of a
     // silent failure. Only a fixed problem code is sent, never page data.
+    function note(code) {
+        window.postMessage({ source: 'mind-ff-fix', type: 'event', code: code }, '*');
+    }
     const reported = {};
     function report(code) {
         if (reported[code]) return;
@@ -40,7 +43,9 @@
         Object.defineProperty(nav, 'userAgent', { get: () => FAKE_UA, configurable: true });
         Object.defineProperty(nav, 'appVersion', { get: () => FAKE_UA.replace('Mozilla/', ''), configurable: true });
         Object.defineProperty(nav, 'vendor', { get: () => 'Google Inc.', configurable: true });
+        note('ua-spoofed');
     } catch (e) {
+        note('ua-failed');
         console.error('[i.Mind FF fix] could not override navigator.userAgent', e);
     }
 
@@ -51,6 +56,8 @@
     //    getDisplayMedia() screen picker instead of
     //    chrome.desktopCapture (which doesn't exist here).
     // ---------------------------------------------------------------
+    note(nav.mediaDevices && typeof nav.mediaDevices.getDisplayMedia === 'function' ? 'env-display-media-yes' : 'env-display-media-no');
+
     const pendingStreams = new Map();
     let counter = 1;
 
@@ -61,6 +68,7 @@
 
         if (data.type === 'getScreen') {
             const id = counter++;
+            note('share-requested');
 
             let streamPromise;
             if (nav.mediaDevices && typeof nav.mediaDevices.getDisplayMedia === 'function') {
@@ -70,6 +78,7 @@
                         // Cancelling the picker is a normal outcome, not a problem.
                         const name = err && err.name;
                         if (name !== 'NotAllowedError' && name !== 'AbortError' && name !== 'NotReadableError') report('share-failed');
+                        else note('share-cancelled');
                         return null;
                     });
             } else {
@@ -82,6 +91,7 @@
 
             streamPromise.then(function (stream) {
                 if (stream) {
+                    note('share-picked');
                     clearTimeout(streamWatch);
                     streamWatch = setTimeout(function () { report('share-protocol'); }, STREAM_REQUEST_TIMEOUT_MS);
                 }
@@ -120,6 +130,7 @@
                     if (!stream) {
                         onFailure(new DOMException('Permission denied', 'NotAllowedError'));
                     } else {
+                        note('share-delivered');
                         onSuccess(stream);
                     }
                 });
@@ -127,6 +138,7 @@
             }
         }
 
+        note('share-refused-call');
         onFailure(new DOMException('Not supported', 'NotSupportedError'));
     }
 

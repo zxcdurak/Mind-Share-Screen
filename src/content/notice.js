@@ -12,6 +12,24 @@
         'chat-stuck': 'Поле ввода чата не запустилось. Обновите страницу (F5); если повторяется, возможно, i.Mind обновился.'
     };
 
+    // Events reported by the page scripts: fixed vocabulary -> [kind, text].
+    const EVENTS = {
+        'ua-spoofed': ['page', 'подмена User-Agent выполнена'],
+        'ua-failed': ['problem', 'не удалось подменить User-Agent'],
+        'env-display-media-yes': ['share', 'браузер поддерживает getDisplayMedia'],
+        'env-display-media-no': ['problem', 'браузер не поддерживает getDisplayMedia'],
+        'share-requested': ['share', 'сайт запросил демонстрацию экрана'],
+        'share-picked': ['share', 'экран выбран'],
+        'share-cancelled': ['share', 'выбор экрана отменён'],
+        'share-delivered': ['share', 'видеопоток экрана передан сайту'],
+        'share-refused-call': ['share', 'сайт запросил что-то кроме экрана через legacyGetUserMedia, отказано'],
+        'chat-load-event': ['chat', 'поле ввода чата не запустилось, отправлено событие load'],
+        'chat-reload': ['chat', 'поле ввода чата всё ещё не запустилось, iframe перезагружен'],
+        'chat-recovered': ['chat', 'поле ввода чата запустилось']
+    };
+
+    MindDiag.log('content', 'страница e-class загружена, расширение активно', 'page');
+
     const codes = [];
     let host = null;
     let list = null;
@@ -72,11 +90,19 @@
     window.addEventListener('message', event => {
         if (event.source !== window) return;
         const data = event.data;
-        if (!data || data.source !== 'mind-ff-fix' || data.type !== 'problem') return;
+        if (!data || data.source !== 'mind-ff-fix') return;
         const code = data.code;
+        if (data.type === 'event') {
+            if (typeof code === 'string' && Object.prototype.hasOwnProperty.call(EVENTS, code)) {
+                MindDiag.log('page', EVENTS[code][1], EVENTS[code][0]);
+            }
+            return;
+        }
+        if (data.type !== 'problem') return;
         if (typeof code !== 'string' || !Object.prototype.hasOwnProperty.call(MESSAGES, code)) return;
         if (codes.includes(code)) return;
         codes.push(code);
+        MindDiag.log('page', 'проблема «' + code + '»: ' + MESSAGES[code], 'problem');
 
         if (!host) build();
         const li = document.createElement('li');

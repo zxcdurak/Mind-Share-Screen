@@ -32,3 +32,12 @@ dd.bad::before { content: "! "; }
 }
 .log li { padding: 1px 0; word-break: break-word; }
 .log .src { color: var(--muted); }
+
+select {
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+}

@@ -10,6 +10,8 @@
     const t0 = performance.now();
     const log = (...a) => console.log('[imind-fix +' + Math.round(performance.now() - t0) + 'ms]', ...a);
 
+    const note = code => window.postMessage({ source: 'mind-ff-fix', type: 'event', code: code }, '*');
+
     let lastAdd = 0;
     let attempts = 0;
     let lastAttempt = 0;
@@ -37,7 +39,7 @@
         if (!f || !f.isConnected) return;
 
         if (initialised(f)) {
-            if (attempts) { log('chat editor initialised after', attempts, 'attempt(s)'); attempts = 0; }
+            if (attempts) { log('chat editor initialised after', attempts, 'attempt(s)'); note('chat-recovered'); attempts = 0; }
             return;
         }
 
@@ -49,9 +51,11 @@
         try {
             if (attempts === 1) {
                 log('chat editor not initialised; dispatching the missing load event');
+                note('chat-load-event');
                 f.dispatchEvent(new Event('load'));
             } else if (attempts === 2) {
                 log('still not initialised; reloading the editor iframe');
+                note('chat-reload');
                 f.src = 'about:blank';
             } else {
                 log('giving up');

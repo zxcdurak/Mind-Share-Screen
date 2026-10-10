@@ -44,6 +44,7 @@ function makeEnv({ withPermissions, now }) {
   }
   const ctx = vm.createContext({ browser, Date: FakeDate, console, crypto, Math, JSON, Map, Set, Array, Number, String, Object, Promise, setTimeout, Error });
   vm.runInContext(read('shared/common.js'), ctx);
+  vm.runInContext(read('shared/diag.js'), ctx);
   vm.runInContext(read('background/background.js'), ctx);
   return { ctx, store, alarms, notifications, tabs, handlers, clock, FakeDate, browser };
 }

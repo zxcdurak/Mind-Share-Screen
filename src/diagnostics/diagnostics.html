@@ -17,6 +17,12 @@
     </section>
 
     <section>
+      <h2>Функции</h2>
+      <p class="hint">Последнее событие по каждой функции. Если нужной функции нет в списке событий, откройте страницу конференции и повторите действие.</p>
+      <dl id="features"></dl>
+    </section>
+
+    <section>
       <h2>Проверка уведомлений</h2>
       <p class="hint">Показывает тестовое уведомление и сообщает, подтвердил ли Firefox его показ. Если Firefox подтвердил, а на экране ничего нет, уведомления блокирует система: в Windows это «Фокусировка внимания» / «Не беспокоить» и настройки уведомлений для Firefox.</p>
       <button id="testBtn" class="btn primary" type="button">Показать тестовое уведомление</button>
@@ -30,11 +36,13 @@
         <button id="refreshBtn" class="btn" type="button">Обновить</button>
         <button id="copyBtn" class="btn" type="button">Скопировать всё</button>
         <button id="clearBtn" class="btn" type="button">Очистить журнал</button>
+        <select id="filter" aria-label="Фильтр журнала"></select>
       </div>
       <ol id="log" class="log"></ol>
       <p id="empty" class="hint" hidden>Журнал пуст.</p>
     </section>
   </main>
+  <script src="../shared/common.js"></script>
   <script src="../shared/diag.js"></script>
   <script src="diagnostics.js"></script>
 </body>

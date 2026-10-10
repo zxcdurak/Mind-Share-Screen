@@ -15,7 +15,7 @@ function setup({ displayMedia }) {
     setTimeout: (f, ms) => { timers.push({ f, ms }); return timers.length; }, clearTimeout: id => { if (timers[id - 1]) timers[id - 1].f = null; } });
   vm.runInContext(src, ctx);
   const send = d => listeners.forEach(f => f({ source: win, data: d }));
-  const problems = () => posted.filter(m => m.source === 'mind-ff-fix').map(m => m.code);
+  const problems = () => posted.filter(m => m.source === 'mind-ff-fix' && m.type === 'problem').map(m => m.code);
   return { nav, send, posted, timers, problems };
 }
 const tick = () => new Promise(r => setImmediate(r));
@@ -56,6 +56,17 @@ const tick = () => new Promise(r => setImmediate(r));
   t.send({ type: 'getScreen' }); await tick(); await tick();
   ok(JSON.stringify(t.problems()) === '["no-display-media"]', 'missing API: reported no-display-media');
   ok(t.posted.some(m => m.type === 'gotScreen' && m.sourceId === ''), 'missing API: site still gets an answer');
+
+  // 6. events for the diagnostics log
+  t = setup({ displayMedia: () => Promise.resolve({ id: 's' }) });
+  t.send({ type: 'getScreen' }); await tick(); await tick();
+  t.nav.legacyGetUserMedia({ video: { mandatory: { chromeMediaSource: 'desktop' } } }, () => {}, () => {}); await tick();
+  t.nav.legacyGetUserMedia({ audio: true }, () => {}, () => {});
+  const ev = t.posted.filter(m => m.type === 'event').map(m => m.code);
+  ok(JSON.stringify(ev) === JSON.stringify(['ua-spoofed','env-display-media-yes','share-requested','share-picked','share-delivered','share-refused-call']), 'events: ' + ev.join(','));
+  t = setup({ displayMedia: () => Promise.reject(Object.assign(new Error('x'), { name: 'NotAllowedError' })) });
+  t.send({ type: 'getScreen' }); await tick(); await tick();
+  ok(t.posted.some(m => m.type === 'event' && m.code === 'share-cancelled'), 'events: cancel is reported as share-cancelled');
 
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);

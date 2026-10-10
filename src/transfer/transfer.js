@@ -90,6 +90,7 @@ $('exportBtn').addEventListener('click', async () => {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
 
+    MindDiag.log('transfer', 'экспорт: записей ' + favorites.length, 'data');
     setInfo('exportInfo', 'Файл сохранён: ' + favorites.length + ' ' + plural(favorites.length, 'запись', 'записи', 'записей') + '.', 'ok');
 });
 
@@ -145,6 +146,7 @@ $('file').addEventListener('change', async e => {
             'обновлено: ' + updated
         ];
         if (skipped) parts.push('пропущено некорректных: ' + skipped);
+        MindDiag.log('transfer', 'импорт: добавлено ' + added + ', обновлено ' + updated + ', пропущено ' + skipped, 'data');
         setInfo('importInfo', parts.join(', ') + '.', 'ok');
         await refreshExportState();
     } catch (err) {
