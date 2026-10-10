@@ -42,7 +42,7 @@ async function openFavorite(fav) {
 }
 
 async function openReminders(fav) {
-    await browser.tabs.create({ url: browser.runtime.getURL('reminders.html') + '#' + encodeURIComponent(fav.id) });
+    await browser.tabs.create({ url: browser.runtime.getURL('src/reminders/reminders.html') + '#' + encodeURIComponent(fav.id) });
     window.close();
 }
 
@@ -155,7 +155,7 @@ $('addForm').addEventListener('submit', async e => {
 const transferBtn = MindIcons.button('transfer', 'Импорт и экспорт избранного');
 transferBtn.id = 'transferBtn';
 transferBtn.addEventListener('click', async () => {
-    await browser.tabs.create({ url: browser.runtime.getURL('transfer.html') });
+    await browser.tabs.create({ url: browser.runtime.getURL('src/transfer/transfer.html') });
     window.close();
 });
 

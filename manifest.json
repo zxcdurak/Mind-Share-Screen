@@ -1,24 +1,32 @@
 {
   "manifest_version": 2,
   "name": "Mind for Firefox",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "Исправляет демонстрацию экрана и работу поля ввода чата в видеоконференциях i.Mind на e-class.tsu.ru при использовании в Firefox. Есть список избранных конференций для входа по номеру и необязательные напоминания по расписанию.",
   "icons": {
-    "48": "icon48.png",
-    "96": "icon96.png"
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png"
   },
-  "permissions": ["storage", "alarms"],
-  "optional_permissions": ["notifications"],
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "optional_permissions": [
+    "notifications"
+  ],
   "background": {
-    "scripts": ["common.js", "background.js"],
+    "scripts": [
+      "src/shared/common.js",
+      "src/background/background.js"
+    ],
     "persistent": true
   },
   "browser_action": {
     "default_title": "Избранные конференции",
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
-      "48": "icon48.png",
-      "96": "icon96.png"
+      "48": "icons/icon48.png",
+      "96": "icons/icon96.png"
     }
   },
   "browser_specific_settings": {
@@ -26,7 +34,9 @@
       "id": "{35c62f32-e3aa-44b6-a1b3-3169464b175e}",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     },
     "gecko_android": {
@@ -35,11 +45,21 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://e-class.tsu.ru/*"],
-      "js": ["content.js", "guestname.js", "notice.js", "chatnotify.js"],
+      "matches": [
+        "https://e-class.tsu.ru/*"
+      ],
+      "js": [
+        "src/content/content.js",
+        "src/content/guestname.js",
+        "src/content/notice.js",
+        "src/content/chatnotify.js"
+      ],
       "run_at": "document_start",
       "all_frames": false
     }
   ],
-  "web_accessible_resources": ["inject.js", "chatfix.js"]
+  "web_accessible_resources": [
+    "src/page/inject.js",
+    "src/page/chatfix.js"
+  ]
 }

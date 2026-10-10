@@ -7,7 +7,7 @@
 // principal boundary too.
 (function () {
     'use strict';
-    for (const file of ['inject.js', 'chatfix.js']) {
+    for (const file of ['src/page/inject.js', 'src/page/chatfix.js']) {
         const script = document.createElement('script');
         script.src = browser.runtime.getURL(file);
         script.onload = function () {

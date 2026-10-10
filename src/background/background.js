@@ -38,7 +38,7 @@ async function onAlarm(alarm) {
             if (fav && slot) {
                 await browser.notifications.create(NOTIFICATION_PREFIX + fav.number + '|' + alarm.scheduledTime, {
                     type: 'basic',
-                    iconUrl: browser.runtime.getURL('icon96.png'),
+                    iconUrl: browser.runtime.getURL('icons/icon96.png'),
                     title: fav.title || 'Конференция ' + fav.number,
                     message: timeLabel(slot.time, lead) + '. Нажмите, чтобы войти.'
                 });
@@ -62,7 +62,7 @@ async function onChatMessage(message, sender) {
     chatTarget = { tabId: sender.tab.id, windowId: sender.tab.windowId };
     await browser.notifications.create(CHAT_NOTIFICATION_ID, {
         type: 'basic',
-        iconUrl: browser.runtime.getURL('icon96.png'),
+        iconUrl: browser.runtime.getURL('icons/icon96.png'),
         title: count === 1 ? 'i.Mind: новое сообщение' : 'i.Mind: новых сообщений: ' + count,
         message: text || 'Откройте вкладку с конференцией.'
     });
