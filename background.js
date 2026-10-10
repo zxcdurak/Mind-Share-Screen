@@ -6,10 +6,12 @@
 
 const ALARM_PREFIX = 'r|';
 const NOTIFICATION_PREFIX = 'conf|';
+const CHAT_NOTIFICATION_ID = 'mind-chat';
 const LATE_LIMIT_MS = 10 * 60 * 1000;
 
 let alarmListenerAdded = false;
 let notificationListenerAdded = false;
+let chatTarget = null; // tab that the chat notification belongs to
 
 async function loadState() {
     const stored = await browser.storage.local.get(['favorites', 'reminderLead']);
@@ -47,7 +49,36 @@ async function onAlarm(alarm) {
     }
 }
 
+// Chat notifications (opt-in, see chatnotify.js). One fixed notification id, so
+// repeated updates replace the previous notification instead of stacking.
+async function onChatMessage(message, sender) {
+    if (!browser.notifications || !sender || !sender.tab) return;
+    const { chatNotify } = await browser.storage.local.get('chatNotify');
+    if (chatNotify !== true) return;
+
+    const count = Math.min(9999, Math.max(1, Math.floor(Number(message.count)) || 1));
+    const text = String(message.text || '').slice(0, 140);
+    addListeners();
+    chatTarget = { tabId: sender.tab.id, windowId: sender.tab.windowId };
+    await browser.notifications.create(CHAT_NOTIFICATION_ID, {
+        type: 'basic',
+        iconUrl: browser.runtime.getURL('icon96.png'),
+        title: count === 1 ? 'i.Mind: новое сообщение' : 'i.Mind: новых сообщений: ' + count,
+        message: text || 'Откройте вкладку с конференцией.'
+    });
+}
+
+async function onChatClicked() {
+    await browser.notifications.clear(CHAT_NOTIFICATION_ID);
+    if (!chatTarget) return;
+    try {
+        await browser.tabs.update(chatTarget.tabId, { active: true });
+        await browser.windows.update(chatTarget.windowId, { focused: true });
+    } catch (e) { /* the tab was closed */ }
+}
+
 async function onNotificationClicked(id) {
+    if (id === CHAT_NOTIFICATION_ID) return onChatClicked();
     if (!id.startsWith(NOTIFICATION_PREFIX)) return;
     const number = id.slice(NOTIFICATION_PREFIX.length).split('|')[0];
     await browser.notifications.clear(id);
@@ -110,8 +141,10 @@ browser.permissions.onAdded.addListener(reschedule);
 browser.permissions.onRemoved.addListener(reschedule);
 browser.runtime.onStartup.addListener(reschedule);
 browser.runtime.onInstalled.addListener(reschedule);
-browser.runtime.onMessage.addListener(message => {
+browser.runtime.onMessage.addListener((message, sender) => {
     if (message && message.type === 'reschedule') return reschedule();
+    if (message && message.type === 'chat') return onChatMessage(message, sender);
+    if (message && message.type === 'chatClear' && browser.notifications) return browser.notifications.clear(CHAT_NOTIFICATION_ID);
 });
 
 reschedule();

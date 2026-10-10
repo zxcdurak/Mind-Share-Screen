@@ -50,6 +50,7 @@ async function renderPermissions() {
     const box = $('perm');
     box.textContent = '';
     const granted = await hasPermissions();
+    renderChat(granted);
 
     const status = document.createElement('div');
     status.className = 'status';
@@ -108,6 +109,33 @@ async function renderPermissions() {
     });
     row.append(input, 'мин. до начала');
     box.append(row);
+}
+
+// ---------- chat notifications ----------
+
+async function renderChat(granted) {
+    const box = $('chat');
+    box.textContent = '';
+    const stored = await browser.storage.local.get('chatNotify');
+
+    const h = document.createElement('h2');
+    h.textContent = 'Чат';
+    const label = document.createElement('label');
+    label.className = 'check';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = stored.chatNotify === true;
+    input.addEventListener('change', async () => {
+        await browser.storage.local.set({ chatNotify: input.checked });
+        flashSaved();
+    });
+    label.append(input, 'Сообщать о новых сообщениях, пока вкладка в фоне');
+
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.textContent = 'В заголовке вкладки появится счётчик «(N)». Уведомления не засоряют экран: первое приходит сразу, остальные объединяются и обновляются не чаще раза в 20 секунд.'
+        + (granted ? '' : ' Чтобы получать и всплывающие уведомления, включите напоминания выше (разрешение на уведомления общее).');
+    box.append(h, label, hint);
 }
 
 // ---------- schedule builder ----------

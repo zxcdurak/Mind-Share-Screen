@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Mind for Firefox",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "description": "Исправляет демонстрацию экрана и работу поля ввода чата в видеоконференциях i.Mind на e-class.tsu.ru при использовании в Firefox. Есть список избранных конференций для входа по номеру и необязательные напоминания по расписанию.",
   "icons": {
     "48": "icon48.png",
@@ -36,7 +36,7 @@
   "content_scripts": [
     {
       "matches": ["https://e-class.tsu.ru/*"],
-      "js": ["content.js", "guestname.js", "notice.js"],
+      "js": ["content.js", "guestname.js", "notice.js", "chatnotify.js"],
       "run_at": "document_start",
       "all_frames": false
     }
