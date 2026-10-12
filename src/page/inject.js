@@ -39,7 +39,11 @@
     // build of the app. Without it (but with "Gecko") GWT picks the 'gecko1_8'
     // build, while the app's own parser still detects "Chrome/124".
     const FAKE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Chrome/124.0.0.0 Safari/537.36';
-    try {
+    // Chromium-based browsers are already accepted by i.Mind, so only Firefox needs the disguise.
+    const isFirefox = /Firefox\//.test(nav.userAgent);
+    if (!isFirefox) {
+        note('ua-kept');
+    } else try {
         Object.defineProperty(nav, 'userAgent', { get: () => FAKE_UA, configurable: true });
         Object.defineProperty(nav, 'appVersion', { get: () => FAKE_UA.replace('Mozilla/', ''), configurable: true });
         Object.defineProperty(nav, 'vendor', { get: () => 'Google Inc.', configurable: true });
@@ -118,6 +122,10 @@
     //    obtain the stream. We provide our own version and hand back
     //    the stream we already captured via getDisplayMedia() above.
     // ---------------------------------------------------------------
+    // Chromium still has the callback API the site was written for; keep it for
+    // everything except the screen. Firefox has none, so it keeps failing as before.
+    const nativeGetUserMedia = nav.getUserMedia || nav.webkitGetUserMedia || null;
+
     function ourLegacyGetUserMedia(constraints, onSuccess, onFailure) {
         const v = constraints && constraints.video;
         const isDesktopCapture = v && v.mandatory && v.mandatory.chromeMediaSource === 'desktop';
@@ -138,6 +146,10 @@
             }
         }
 
+        if (nativeGetUserMedia) {
+            nativeGetUserMedia.call(nav, constraints, onSuccess, onFailure);
+            return;
+        }
         note('share-refused-call');
         onFailure(new DOMException('Not supported', 'NotSupportedError'));
     }

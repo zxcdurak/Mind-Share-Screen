@@ -3,9 +3,13 @@ const src = fs.readFileSync(require('path').join(__dirname, '..', 'src/page/inje
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FAIL', m); } else console.log('ok  ', m); };
 
-function setup({ displayMedia }) {
+const FIREFOX_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0';
+const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+function setup({ displayMedia, ua, nativeGetUserMedia }) {
   const listeners = [], posted = [], timers = [];
-  const nav = { mediaDevices: displayMedia === undefined ? {} : { getDisplayMedia: displayMedia } };
+  const nav = { userAgent: ua || FIREFOX_UA, mediaDevices: displayMedia === undefined ? {} : { getDisplayMedia: displayMedia } };
+  if (nativeGetUserMedia) nav.getUserMedia = nativeGetUserMedia;
   const win = {
     addEventListener: (t, f) => listeners.push(f),
     postMessage: m => posted.push(m)
@@ -67,6 +71,23 @@ const tick = () => new Promise(r => setImmediate(r));
   t = setup({ displayMedia: () => Promise.reject(Object.assign(new Error('x'), { name: 'NotAllowedError' })) });
   t.send({ type: 'getScreen' }); await tick(); await tick();
   ok(t.posted.some(m => m.type === 'event' && m.code === 'share-cancelled'), 'events: cancel is reported as share-cancelled');
+
+  // 7. Chromium: the browser is left alone and the native getUserMedia is used for everything but the screen
+  const calls = [];
+  t = setup({ displayMedia: () => Promise.resolve({ id: 's' }), ua: CHROME_UA, nativeGetUserMedia: function (c, ok) { calls.push(['native', this === t.nav, c]); ok('camera'); } });
+  ok(t.nav.userAgent === CHROME_UA, 'chromium: userAgent is not replaced');
+  ok(t.posted.some(m => m.type === 'event' && m.code === 'ua-kept') && !t.posted.some(m => m.code === 'ua-spoofed'), 'chromium: reported as ua-kept');
+  let cam; t.nav.legacyGetUserMedia({ audio: true, video: true }, s => cam = s, () => {});
+  ok(cam === 'camera' && calls.length === 1 && calls[0][1] === true, 'chromium: camera/microphone go to the native getUserMedia');
+  t.send({ type: 'getScreen' }); await tick(); await tick();
+  let scr; t.nav.legacyGetUserMedia({ video: { mandatory: { chromeMediaSource: 'desktop' } } }, s => scr = s, () => {}); await tick();
+  ok(scr && scr.id === 's' && calls.length === 1, 'chromium: the screen still comes from getDisplayMedia');
+
+  // 8. Firefox: the browser is disguised, and a non-screen request still fails as before
+  t = setup({ displayMedia: () => Promise.resolve({ id: 's' }) });
+  ok(t.nav.userAgent.includes('Chrome/124') && !/Firefox/.test(t.nav.userAgent), 'firefox: userAgent is replaced');
+  let err; t.nav.legacyGetUserMedia({ audio: true }, () => {}, e => err = e);
+  ok(err && err.name === 'NotSupportedError', 'firefox: non-screen requests are still refused');
 
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);

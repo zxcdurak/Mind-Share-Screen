@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Mind for Chromium",
+  "version": "1.17.0",
+  "description": "Демонстрация экрана в видеоконференциях i.Mind на e-class.tsu.ru без отдельного расширения Mind Screen Sharing. Список избранных конференций, необязательные напоминания и уведомления о сообщениях чата.",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png"
+  },
+  "permissions": ["storage", "alarms"],
+  "optional_permissions": ["notifications"],
+  "background": {
+    "service_worker": "src/background/sw.js"
+  },
+  "action": {
+    "default_title": "Избранные конференции",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "48": "icons/icon48.png",
+      "96": "icons/icon96.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://e-class.tsu.ru/*"],
+      "js": ["src/page/inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": ["https://e-class.tsu.ru/*"],
+      "js": [
+        "src/shared/compat.js",
+        "src/shared/diag.js",
+        "src/content/guestname.js",
+        "src/content/notice.js",
+        "src/content/chatnotify.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}

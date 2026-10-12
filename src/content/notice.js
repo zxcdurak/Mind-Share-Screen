@@ -15,6 +15,7 @@
     // Events reported by the page scripts: fixed vocabulary -> [kind, text].
     const EVENTS = {
         'ua-spoofed': ['page', 'подмена User-Agent выполнена'],
+        'ua-kept': ['page', 'User-Agent не менялся (не Firefox)'],
         'ua-failed': ['problem', 'не удалось подменить User-Agent'],
         'env-display-media-yes': ['share', 'браузер поддерживает getDisplayMedia'],
         'env-display-media-no': ['problem', 'браузер не поддерживает getDisplayMedia'],

@@ -12,7 +12,6 @@ const LATE_LIMIT_MS = 10 * 60 * 1000;
 
 let alarmListenerAdded = false;
 let notificationListenerAdded = false;
-let chatTarget = null; // tab that the chat notification belongs to
 
 async function loadState() {
     const stored = await browser.storage.local.get(['favorites', 'reminderLead']);
@@ -72,7 +71,8 @@ async function onChatMessage(message, sender) {
 
     const text = String(message.text || '').slice(0, 140);
     addListeners();
-    chatTarget = { tabId: sender.tab.id, windowId: sender.tab.windowId };
+    // Kept in storage, not in a variable: a Chromium service worker may be stopped before the click.
+    await browser.storage.local.set({ chatTarget: { tabId: sender.tab.id, windowId: sender.tab.windowId } });
     try {
         await browser.notifications.create(CHAT_NOTIFICATION_ID, {
             type: 'basic',
@@ -110,6 +110,7 @@ async function sendTestNotification() {
 
 async function onChatClicked() {
     await browser.notifications.clear(CHAT_NOTIFICATION_ID);
+    const { chatTarget } = await browser.storage.local.get('chatTarget');
     if (!chatTarget) return;
     try {
         await browser.tabs.update(chatTarget.tabId, { active: true });
@@ -179,7 +180,8 @@ async function reschedule() {
         else await browser.alarms.clear(alarm.name);
     }
     for (const [name, when] of wanted) browser.alarms.create(name, { when });
-    if (wanted.size) MindDiag.log('bg', 'запланировано напоминаний: ' + wanted.size, 'remind');
+    // Only newly created alarms are worth a line: a Chromium service worker re-runs this on every wake-up.
+    if (wanted.size) MindDiag.log('bg', 'запланировано новых напоминаний: ' + wanted.size, 'remind');
 }
 
 browser.storage.onChanged.addListener((changes, area) => {
@@ -187,15 +189,14 @@ browser.storage.onChanged.addListener((changes, area) => {
 });
 browser.permissions.onAdded.addListener(() => { MindDiag.log('bg', 'разрешение выдано', 'remind'); return reschedule(); });
 browser.permissions.onRemoved.addListener(() => { MindDiag.log('bg', 'разрешение снято', 'remind'); return reschedule(); });
-browser.runtime.onStartup.addListener(reschedule);
-browser.runtime.onInstalled.addListener(reschedule);
+browser.runtime.onStartup.addListener(() => { MindDiag.log('bg', 'браузер запущен', 'page'); return reschedule(); });
+browser.runtime.onInstalled.addListener(() => { MindDiag.log('bg', 'расширение установлено или обновлено', 'page'); return reschedule(); });
 browser.runtime.onMessage.addListener((message, sender) => {
     if (message && message.type === 'reschedule') return reschedule();
     if (message && message.type === 'chat') return onChatMessage(message, sender);
-    if (message && message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, alarmsApi: !!browser.alarms });
+    if (message && message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, shownEvent: !!(browser.notifications && browser.notifications.onShown), alarmsApi: !!browser.alarms });
     if (message && message.type === 'diagTest') return sendTestNotification();
-    if (message && message.type === 'chatClear' && browser.notifications) return browser.notifications.clear(CHAT_NOTIFICATION_ID);
+    if (message && message.type === 'chatClear') return browser.notifications ? browser.notifications.clear(CHAT_NOTIFICATION_ID) : Promise.resolve();
 });
 
-MindDiag.log('bg', 'фоновая страница запущена', 'page');
 reschedule();

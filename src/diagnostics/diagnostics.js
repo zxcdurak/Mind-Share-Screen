@@ -139,9 +139,16 @@ $('testBtn').addEventListener('click', async () => {
     out.textContent = 'Отправляю…';
     const since = Date.now();
     let created = false;
-    try { created = await browser.runtime.sendMessage({ type: 'diagTest' }); } catch (e) { /* reported below */ }
+    let canConfirm = true;
+    try {
+        created = await browser.runtime.sendMessage({ type: 'diagTest' });
+        const state = await browser.runtime.sendMessage({ type: 'diagState' });
+        canConfirm = !!(state && state.shownEvent);
+    } catch (e) { /* reported below */ }
     if (!created) {
-        out.textContent = 'Firefox не смог создать уведомление. Подробности в журнале ниже.';
+        out.textContent = 'Браузер не смог создать уведомление. Подробности в журнале ниже.';
+    } else if (!canConfirm) {
+        out.textContent = 'Уведомление создано. Этот браузер не сообщает, показал ли он его: если на экране пусто, проверьте настройки уведомлений системы и режим «Не беспокоить».';
     } else {
         // onShown is reported by Firefox a moment after create().
         let shown = false;
@@ -150,8 +157,8 @@ $('testBtn').addEventListener('click', async () => {
             shown = (await MindDiag.read()).some(e => e.t >= since && /shown: mind-test/.test(e.m));
         }
         out.textContent = shown
-            ? 'Firefox подтвердил показ уведомления. Если на экране его нет, проверьте настройки уведомлений системы.'
-            : 'Уведомление создано, но Firefox не подтвердил показ. Проверьте настройки уведомлений системы и режим «Не беспокоить».';
+            ? 'Браузер подтвердил показ уведомления. Если на экране его нет, проверьте настройки уведомлений системы.'
+            : 'Уведомление создано, но браузер не подтвердил показ. Проверьте настройки уведомлений системы и режим «Не беспокоить».';
     }
     await renderLog();
 });
