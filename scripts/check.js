@@ -87,6 +87,11 @@ for (const [target, info] of Object.entries(TARGETS)) {
         continue;
     }
     versions[target] = manifest.version;
+    // Limits of the Chromium stores (Chrome Web Store, Edge Add-ons, Opera add-ons, which Yandex Browser uses).
+    if (target === 'chromium') {
+        if (manifest.description.length > 132) fail('chromium: description is ' + manifest.description.length + ' characters, the stores allow 132');
+        if (manifest.name.length > 45) fail('chromium: name is ' + manifest.name.length + ' characters, the stores allow 45');
+    }
 
     const packed = collect(target);
     const names = new Set(packed.map(f => f.name));
