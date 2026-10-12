@@ -24,7 +24,7 @@
 
     <section>
       <h2>Проверка уведомлений</h2>
-      <p class="hint">Показывает тестовое уведомление и сообщает, подтвердил ли Firefox его показ. Если Firefox подтвердил, а на экране ничего нет, уведомления блокирует система: в Windows это «Фокусировка внимания» / «Не беспокоить» и настройки уведомлений для Firefox.</p>
+      <p class="hint">Показывает тестовое уведомление и, если браузер это умеет, сообщает, подтвердил ли он показ. Если уведомление создано, а на экране ничего нет, его блокирует система: в Windows это «Фокусировка внимания» / «Не беспокоить» и настройки уведомлений для браузера.</p>
       <button id="testBtn" class="btn primary" type="button">Показать тестовое уведомление</button>
       <p id="testResult" class="result" role="status"></p>
     </section>
@@ -42,6 +42,7 @@
       <p id="empty" class="hint" hidden>Журнал пуст.</p>
     </section>
   </main>
+  <script src="../shared/compat.js"></script>
   <script src="../shared/common.js"></script>
   <script src="../shared/diag.js"></script>
   <script src="diagnostics.js"></script>

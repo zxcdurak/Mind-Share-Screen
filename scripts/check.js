@@ -45,22 +45,30 @@ function manifestFiles(m) {
     return out;
 }
 
-function htmlFiles(htmlRel) {
-    const text = fs.readFileSync(path.join(ROOT, htmlRel), 'utf8');
-    const out = [];
-    for (const m of text.matchAll(/(?:src|href)="([^"#?]+)"/g)) {
-        if (/^(https?:|\/\/|data:)/.test(m[1])) continue;
-        out.push(path.posix.normalize(path.posix.join(path.posix.dirname(htmlRel), m[1])));
-    }
-    return out;
+const BS = String.fromCharCode(92);   // a backslash, spelled out so the patterns below stay readable
+const HTML_REF = new RegExp('(?:src|href)="([^"#?]+)"', 'g');
+const REMOTE = new RegExp('^(https?:|' + BS + '/' + BS + '/|data:)');
+const GET_URL = new RegExp('getURL' + BS + '(' + "'([^']+)'" + BS + ')', 'g');
+const IMPORT_SCRIPTS = new RegExp('importScripts' + BS + '(([^)]*)' + BS + ')', 'g');
+const QUOTED = new RegExp("'([^']+)'", 'g');
+const IS_HTML_OR_JS = new RegExp(BS + '.(html|js)$');
+
+function relativeTo(fromFile, ref) {
+    return path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), ref));
 }
 
-function sourceFiles(dir) {
+// Files that `name` (an HTML page or a script) points to.
+function referencedBy(name, text) {
     const out = [];
-    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
-        const rel = dir + '/' + e.name;
-        if (e.isDirectory()) out.push(...sourceFiles(rel));
-        else out.push(rel);
+    if (name.endsWith('.html')) {
+        for (const m of text.matchAll(HTML_REF)) {
+            if (!REMOTE.test(m[1])) out.push(relativeTo(name, m[1]));
+        }
+    } else if (name.endsWith('.js')) {
+        for (const m of text.matchAll(GET_URL)) out.push(m[1]);
+        for (const m of text.matchAll(IMPORT_SCRIPTS)) {
+            for (const s of m[1].matchAll(QUOTED)) out.push(relativeTo(name, s[1]));
+        }
     }
     return out;
 }
@@ -80,18 +88,19 @@ for (const [target, info] of Object.entries(TARGETS)) {
     }
     versions[target] = manifest.version;
 
-    const refs = manifestFiles(manifest);
-    for (const f of [...refs]) if (f.endsWith('.html')) htmlFiles(f).forEach(x => refs.add(x));
-    for (const f of sourceFiles('src').filter(x => x.endsWith('.js'))) {
-        const text = fs.readFileSync(path.join(ROOT, f), 'utf8');
-        for (const m of text.matchAll(/getURL\('([^']+)'\)/g)) refs.add(m[1]);
-    }
-    for (const f of refs) if (!exists(f)) fail(target + ': missing file ' + f);
-
-    for (const { name } of collect(target)) {
+    const packed = collect(target);
+    const names = new Set(packed.map(f => f.name));
+    const refs = new Map(); // file -> who points to it
+    for (const f of manifestFiles(manifest)) refs.set(f, 'manifest');
+    for (const { name, file } of packed) {
         if (name.includes(String.fromCharCode(92))) fail(target + ': backslash in archive path ' + name);
+        if (!IS_HTML_OR_JS.test(name)) continue;
+        for (const ref of referencedBy(name, fs.readFileSync(file, 'utf8'))) if (!refs.has(ref)) refs.set(ref, name);
     }
-    console.log(target + ': version ' + manifest.version + ', ' + refs.size + ' references checked');
+    for (const [ref, who] of refs) {
+        if (!names.has(ref)) fail(target + ': ' + who + ' points to ' + ref + ', which is not in the package');
+    }
+    console.log(target + ': version ' + manifest.version + ', ' + packed.length + ' files, ' + refs.size + ' references checked');
 }
 
 const distinct = new Set(Object.values(versions));

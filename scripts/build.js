@@ -19,9 +19,18 @@ const zlib = require('zlib');
 const ROOT = path.resolve(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 
+// `exclude`: files of src/ that the other browser needs and this one does not.
 const TARGETS = {
-    firefox: { manifest: 'manifest.json', ext: 'xpi' },
-    chromium: { manifest: path.join('chromium', 'manifest.json'), ext: 'zip' }
+    firefox: {
+        manifest: 'manifest.json',
+        ext: 'xpi',
+        exclude: ['src/background/sw.js']
+    },
+    chromium: {
+        manifest: path.join('chromium', 'manifest.json'),
+        ext: 'zip',
+        exclude: ['src/content/content.js', 'src/page/chatfix.js']
+    }
 };
 
 // Everything the extension needs besides its manifest.
@@ -45,7 +54,8 @@ function collect(target) {
     const files = [{ name: 'manifest.json', file: manifestPath }];
     for (const dir of INCLUDE) {
         for (const file of listFiles(path.join(ROOT, dir)).sort()) {
-            files.push({ name: path.relative(ROOT, file).split(path.sep).join('/'), file });
+            const name = path.relative(ROOT, file).split(path.sep).join('/');
+            if (!TARGETS[target].exclude.includes(name)) files.push({ name, file });
         }
     }
     return files;
