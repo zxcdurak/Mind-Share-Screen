@@ -115,6 +115,10 @@ node scripts/build.js all --zip       # оба
 подходит для временной установки из исходников. Для Chromium можно собрать
 без архива (`node scripts/build.js chromium`) и загрузить папку `dist/chromium`.
 
+## История изменений
+
+См. [CHANGELOG.md](CHANGELOG.md).
+
 ## Лицензия
 
 MIT, см. [LICENSE](LICENSE). Исходники, релизы и обращения: [github.com/zxcdurak/Mind-Share-Screen](https://github.com/zxcdurak/Mind-Share-Screen).

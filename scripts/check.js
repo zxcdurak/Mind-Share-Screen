@@ -106,6 +106,10 @@ for (const [target, info] of Object.entries(TARGETS)) {
 const distinct = new Set(Object.values(versions));
 if (distinct.size > 1) fail('manifest versions differ: ' + JSON.stringify(versions));
 
+// Every released version needs a CHANGELOG.md entry.
+const changelog = exists('CHANGELOG.md') ? fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8') : '';
+for (const v of distinct) if (!changelog.includes('## [' + v + ']')) fail('CHANGELOG.md has no entry for version ' + v);
+
 
 if (problems.length) {
     console.error('\n' + problems.map(p => 'FAIL ' + p).join('\n'));
