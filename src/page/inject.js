@@ -89,6 +89,8 @@
                 report('no-display-media');
                 streamPromise = Promise.resolve(null);
             }
+            // Only the latest request is ever used; do not keep older streams alive.
+            pendingStreams.clear();
             pendingStreams.set(id, streamPromise);
 
             window.postMessage(Object.assign({}, data, { type: 'getScreenPending', request: id }), '*');

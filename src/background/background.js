@@ -51,16 +51,28 @@ async function onAlarm(alarm) {
     }
 }
 
+// Who is allowed to send which message. Chat messages come from the content scripts
+// on e-class.tsu.ru; everything else comes from the extension's own pages.
+function isOwn(sender) {
+    return !!sender && typeof sender.url === 'string' && sender.id === browser.runtime.id;
+}
+function fromSite(sender) {
+    return isOwn(sender) && !!sender.tab && sender.url.startsWith(MindCommon.BASE_URL);
+}
+function fromExtensionPage(sender) {
+    return isOwn(sender) && sender.url.startsWith(browser.runtime.getURL(''));
+}
+
 // Chat notifications (opt-in, see chatnotify.js). One fixed notification id, so
 // repeated updates replace the previous notification instead of stacking.
 async function onChatMessage(message, sender) {
     const count = Math.min(9999, Math.max(1, Math.floor(Number(message.count)) || 1));
-    if (!browser.notifications) {
-        MindDiag.log('bg', 'chat x' + count + ': skipped, browser.notifications is not available (permission missing?)', 'notify');
+    if (!fromSite(sender)) {
+        MindDiag.log('bg', 'chat x' + count + ': skipped, the sender is not an e-class tab', 'notify');
         return;
     }
-    if (!sender || !sender.tab) {
-        MindDiag.log('bg', 'chat x' + count + ': skipped, message did not come from a tab', 'notify');
+    if (!browser.notifications) {
+        MindDiag.log('bg', 'chat x' + count + ': skipped, browser.notifications is not available (permission missing?)', 'notify');
         return;
     }
     const { chatNotify } = await browser.storage.local.get('chatNotify');
@@ -192,11 +204,13 @@ browser.permissions.onRemoved.addListener(() => { MindDiag.log('bg', 'разре
 browser.runtime.onStartup.addListener(() => { MindDiag.log('bg', 'браузер запущен', 'page'); return reschedule(); });
 browser.runtime.onInstalled.addListener(() => { MindDiag.log('bg', 'расширение установлено или обновлено', 'page'); return reschedule(); });
 browser.runtime.onMessage.addListener((message, sender) => {
-    if (message && message.type === 'reschedule') return reschedule();
-    if (message && message.type === 'chat') return onChatMessage(message, sender);
-    if (message && message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, shownEvent: !!(browser.notifications && browser.notifications.onShown), alarmsApi: !!browser.alarms });
-    if (message && message.type === 'diagTest') return sendTestNotification();
-    if (message && message.type === 'chatClear') return browser.notifications ? browser.notifications.clear(CHAT_NOTIFICATION_ID) : Promise.resolve();
+    if (!message || typeof message !== 'object') return;
+    if (message.type === 'chat') return onChatMessage(message, sender);
+    if (message.type === 'chatClear' && fromSite(sender)) return browser.notifications ? browser.notifications.clear(CHAT_NOTIFICATION_ID) : Promise.resolve();
+    if (!fromExtensionPage(sender)) return;
+    if (message.type === 'reschedule') return reschedule();
+    if (message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, shownEvent: !!(browser.notifications && browser.notifications.onShown), alarmsApi: !!browser.alarms });
+    if (message.type === 'diagTest') return sendTestNotification();
 });
 
 reschedule();

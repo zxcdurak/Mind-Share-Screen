@@ -87,6 +87,8 @@ for (const [target, info] of Object.entries(TARGETS)) {
         continue;
     }
     versions[target] = manifest.version;
+    // The Chrome Web Store rejects a manifest description longer than 132 characters.
+    if (target === 'chromium' && manifest.description.length > 132) fail('chromium: description is ' + manifest.description.length + ' characters, the store allows 132');
 
     const packed = collect(target);
     const names = new Set(packed.map(f => f.name));
