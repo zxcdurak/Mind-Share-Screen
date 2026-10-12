@@ -72,19 +72,23 @@ src/
   notifications/  страница уведомлений
   transfer/       импорт и экспорт
   diagnostics/    страница диагностики
+scripts/          сборка, проверка и запуск тестов
 tests/            автотесты на Node.js
 ```
 
-### Тесты
+### Сборка и проверка
 
-Нужен только Node.js, ничего устанавливать не надо:
+Нужен только Node.js, ничего устанавливать не надо.
 
 ```bash
-node tests/bg-test.js
-node tests/bg-chat-test.js
-node tests/transfer-test.js
-node tests/platform-test.js
+node scripts/test.js                  # все тесты из tests/
+node scripts/check.js                 # манифесты, ссылки на файлы, версии
+node scripts/build.js firefox --zip   # dist/mind-for-firefox-<версия>.xpi
 ```
+
+Сборка только копирует файлы и пакует их, код не преобразуется. Для Firefox
+пакет собирается из `manifest.json` в корне, и тот же манифест подходит для
+временной установки из исходников.
 
 ## Лицензия
 
