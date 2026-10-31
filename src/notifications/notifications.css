@@ -19,7 +19,7 @@ section h2 { margin-bottom: 6px; }
   border: 2px solid var(--border-strong);
   border-radius: 50%;
 }
-.badge.on::before { border-color: var(--fg); background: var(--fg); }
+.badge.on::before { border-color: var(--dot-border); background: var(--dot-bg); box-shadow: var(--dot-shadow); }
 .badge.off { color: var(--muted); }
 
 .lead { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-weight: 400; }
@@ -30,12 +30,9 @@ section h2 { margin-bottom: 6px; }
 .card {
   margin: 10px 0;
   padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
 }
-.card.focus { border-color: var(--fg); }
-.card h3 { font-size: 14px; }
+.card.focus { box-shadow: 0 0 0 1px var(--lit-border), var(--lit-shadow); }
+.card h3 { font-size: 14px; color: var(--title); text-shadow: var(--name-glow); }
 .card .num { margin: 2px 0 8px; color: var(--muted); font-size: 12px; }
 
 .slot {
@@ -52,14 +49,21 @@ section h2 { margin-bottom: 6px; }
   width: 34px;
   height: 30px;
   padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
   background: var(--chip);
-  color: var(--fg);
+  color: var(--muted);
   font-size: 12px;
 }
-.day:hover { border-color: var(--muted); background: var(--raised); }
-.day[aria-pressed="true"] { border-color: var(--fg); background: var(--fg); color: var(--on-fg); font-weight: 600; }
+.day:hover { background: var(--raised); }
+.day[aria-pressed="true"] {
+  border-color: var(--lit-border);
+  background: var(--lit-bg);
+  color: var(--lit-text);
+  text-shadow: var(--lit-text-shadow);
+  box-shadow: var(--lit-shadow);
+  font-weight: 600;
+}
 
 .slot input[type="time"] { width: auto; }
 
@@ -84,7 +88,7 @@ section h2 { margin-bottom: 6px; }
 .add:hover { color: var(--fg); }
 
 .check { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 400; cursor: pointer; }
-.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--fg); }
+.check input { width: 16px; height: 16px; margin: 0; accent-color: rgb(var(--teal)); }
 
 #chat a { color: var(--muted); font-size: 12px; }
 #chat a:hover { color: var(--fg); }
