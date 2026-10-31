@@ -13,7 +13,7 @@ section .hint { margin: 0 0 12px; }
 dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
 dt { color: var(--muted); }
 dd { margin: 0; word-break: break-word; }
-dd.bad { font-weight: 600; }
+dd.bad { font-weight: 600; color: var(--warn); text-shadow: var(--warn-glow); }
 dd.bad::before { content: "! "; }
 
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -25,19 +25,8 @@ dd.bad::before { content: "! "; }
   list-style: none;
   max-height: 360px;
   overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
   font: 12px/1.5 ui-monospace, Consolas, monospace;
 }
 .log li { padding: 1px 0; word-break: break-word; }
-.log .src { color: var(--muted); }
+.log .src { color: var(--warn); }
 
-select {
-  padding: 6px 8px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--fg);
-  font: inherit;
-}

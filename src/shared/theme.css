@@ -1,88 +1,244 @@
-/* Shared look of all extension pages. Palette: #06141B #11212D #253745 #4A5C6A #9BA8AB #CCD0CF */
+/*
+ * Look of all extension pages: clear glass with a bright rim, amber and teal refraction.
+ * Dark is the default, :root[data-theme="light"] is the pale counterpart. Everything that differs
+ * between the two is a variable below; the rules after the variables use them and do not repeat the theme.
+ */
 :root {
   color-scheme: dark;
 
-  --c0: #06141B;
-  --c1: #11212D;
-  --c2: #253745;
-  --c3: #4A5C6A;
-  --c4: #9BA8AB;
-  --c5: #CCD0CF;
+  /* light that passes through the glass (r, g, b) */
+  --amber: 255, 168, 52;
+  --gold: 255, 206, 100;
+  --teal: 40, 176, 226;
+  --blue: 70, 120, 255;
+  --ice: 190, 225, 255;
 
-  /* Dark theme (default): roles of the palette colours. */
-  --bg: var(--c0);
-  --surface: var(--c1);
-  --raised: var(--c2);
-  --border: var(--c2);
-  --border-strong: var(--c3);
-  --muted: var(--c4);
-  --fg: var(--c5);
-  --on-fg: var(--c0);
-  --chip: var(--c2);   /* fill of unselected toggle buttons */
+  --bg: #000000;
+  --surface: #03060C;
+  --raised: rgba(150, 200, 255, .08);
+  --border: rgba(170, 205, 255, .26);
+  --border-strong: rgba(190, 225, 255, .60);
+  --muted: #8FA8C6;
+  --fg: #EAF2FF;
+  --on-fg: #000000;
+  --chip: rgba(0, 4, 10, .35);
+
+  --heading: #A9C4E4;
+  --heading-glow: 0 0 10px rgba(var(--teal), .35);
+  --title: #FFFFFF;
+  --title-shadow: -1px 0 rgba(var(--teal), .65), 1px 0 rgba(var(--amber), .65), 0 0 16px rgba(var(--ice), .35);
+  --name-glow: 0 0 10px rgba(var(--ice), .30);
+  --link: #BEE1FF;
+  --link-glow: 0 0 8px rgba(var(--teal), .5);
+  --warn: rgb(var(--amber));
+  --warn-glow: 0 0 8px rgba(var(--amber), .6);
+  --icon-color: #CFE6FF;
+  --icon-filter: drop-shadow(-1px 0 1px rgba(var(--teal), .7)) drop-shadow(1px 0 1px rgba(var(--amber), .7));
+  --icon-hover-shadow: 0 0 14px rgba(var(--teal), .35);
+
+  /* ambient light behind the page: cool low left, warm high right */
+  --ambient:
+    radial-gradient(55% 40% at 8% 88%, rgba(var(--teal), .22), transparent 70%),
+    radial-gradient(50% 35% at 96% 10%, rgba(var(--amber), .16), transparent 70%),
+    radial-gradient(60% 30% at 50% 0%, rgba(var(--ice), .10), transparent 70%);
+
+  /* panels: refraction streaks, near-black glass, rim that is brightest at the top left */
+  --panel-bg:
+    linear-gradient(112deg, transparent 18%, rgba(var(--amber), .17) 34%, rgba(var(--gold), .10) 40%, transparent 52%) border-box,
+    linear-gradient(292deg, transparent 52%, rgba(var(--teal), .18) 70%, rgba(var(--blue), .10) 82%, transparent 94%) border-box,
+    linear-gradient(rgba(3, 7, 14, .86), rgba(1, 3, 8, .92)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, .95), rgba(150, 205, 255, .45) 26%, rgba(var(--amber), .30) 52%, rgba(120, 190, 255, .35) 74%, rgba(255, 255, 255, .80)) border-box;
+  --panel-shadow: 0 0 22px rgba(var(--teal), .20), 0 0 60px rgba(var(--amber), .07), inset 0 0 26px rgba(var(--ice), .07);
+
+  --field-bg: rgba(0, 4, 10, .55);
+  --field-border: rgba(170, 205, 255, .34);
+  --field-shadow: inset 0 0 12px rgba(var(--ice), .05);
+  --focus-border: rgba(255, 255, 255, .92);
+  --focus-shadow: 0 0 0 1px rgba(255, 255, 255, .35), 0 0 18px rgba(var(--teal), .55), inset 0 0 12px rgba(var(--ice), .10);
+
+  --btn-bg:
+    linear-gradient(rgba(8, 14, 26, .62), rgba(3, 6, 14, .78)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, .90), rgba(120, 190, 255, .40) 35%, rgba(var(--amber), .32) 62%, rgba(255, 255, 255, .72)) border-box;
+  --btn-bg-hover:
+    linear-gradient(rgba(16, 26, 44, .62), rgba(6, 10, 20, .78)) padding-box,
+    linear-gradient(135deg, #fff, rgba(150, 210, 255, .65) 35%, rgba(var(--amber), .5) 62%, #fff) border-box;
+  --btn-shadow: 0 0 14px rgba(var(--teal), .18), inset 0 0 10px rgba(var(--ice), .06);
+  --btn-shadow-hover: 0 0 22px rgba(var(--teal), .40), 0 0 6px rgba(255, 255, 255, .35);
+
+  --primary-bg:
+    linear-gradient(105deg, rgba(var(--amber), .55) 0%, rgba(var(--gold), .22) 34%, rgba(var(--teal), .20) 62%, rgba(var(--blue), .46) 100%) padding-box,
+    linear-gradient(rgba(6, 12, 24, .70), rgba(2, 5, 12, .80)) padding-box,
+    linear-gradient(135deg, #fff, rgba(150, 210, 255, .7) 35%, rgba(var(--amber), .55) 62%, #fff) border-box;
+  --primary-text: #FFFFFF;
+  --primary-text-shadow: 0 0 10px rgba(255, 255, 255, .55);
+  --primary-shadow: 0 0 22px rgba(var(--teal), .45), 0 0 48px rgba(var(--amber), .16), inset 0 0 14px rgba(255, 255, 255, .10);
+
+  /* "lit" glass: chosen days */
+  --lit-bg: linear-gradient(135deg, rgba(var(--amber), .55), rgba(var(--gold), .18) 45%, rgba(var(--teal), .50));
+  --lit-border: rgba(255, 255, 255, .9);
+  --lit-text: #FFFFFF;
+  --lit-text-shadow: 0 0 8px rgba(255, 255, 255, .8);
+  --lit-shadow: 0 0 14px rgba(var(--teal), .55), 0 0 26px rgba(var(--amber), .20), inset 0 0 10px rgba(255, 255, 255, .18);
+
+  --dot-bg: radial-gradient(circle at 35% 35%, #fff, rgb(var(--teal)));
+  --dot-border: #fff;
+  --dot-shadow: 0 0 10px rgba(var(--teal), .9), 0 0 22px rgba(var(--amber), .35);
 }
 
-/* Light theme: the page is #F2F2F5, everything else comes from the palette. */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: #F2F2F5;
-  --surface: var(--bg);
-  --raised: var(--c5);        /* hover fills */
-  --border: var(--c4);        /* hairlines */
-  --border-strong: var(--c3);
-  --muted: var(--c2);
-  --fg: var(--c0);
-  --on-fg: var(--bg);         /* text on the dark primary button */
-  --chip: var(--c5);          /* fill of unselected toggle buttons */
+  --amber: 224, 128, 10;
+  --gold: 214, 150, 30;
+  --teal: 10, 130, 180;
+  --blue: 40, 80, 200;
+  --ice: 40, 90, 150;
+
+  --bg: #EDF2F8;
+  --surface: #FFFFFF;
+  --raised: rgba(20, 70, 140, .07);
+  --border: rgba(30, 80, 140, .22);
+  --border-strong: rgba(30, 80, 140, .50);
+  --muted: #4E6682;
+  --fg: #0E1A2B;
+  --on-fg: #FFFFFF;
+  --chip: rgba(255, 255, 255, .70);
+
+  --heading: #3F5A7A;
+  --heading-glow: none;
+  --title: #0E1A2B;
+  --title-shadow: -1px 0 rgba(var(--teal), .35), 1px 0 rgba(var(--amber), .35);
+  --name-glow: none;
+  --link: rgb(var(--teal));
+  --link-glow: none;
+  --warn: rgb(var(--amber));
+  --warn-glow: none;
+  --icon-color: #14304F;
+  --icon-filter: none;
+  --icon-hover-shadow: none;
+
+  --ambient:
+    radial-gradient(55% 40% at 8% 88%, rgba(var(--teal), .16), transparent 70%),
+    radial-gradient(50% 35% at 96% 10%, rgba(var(--amber), .14), transparent 70%),
+    radial-gradient(60% 30% at 50% 0%, rgba(255, 255, 255, .9), transparent 70%);
+
+  --panel-bg:
+    linear-gradient(112deg, transparent 18%, rgba(var(--amber), .13) 34%, rgba(var(--gold), .08) 40%, transparent 52%) border-box,
+    linear-gradient(292deg, transparent 52%, rgba(var(--teal), .14) 70%, rgba(var(--blue), .08) 82%, transparent 94%) border-box,
+    linear-gradient(rgba(255, 255, 255, .80), rgba(246, 250, 255, .72)) padding-box,
+    linear-gradient(135deg, #fff, rgba(120, 170, 230, .50) 28%, rgba(var(--amber), .38) 54%, rgba(120, 170, 230, .45) 76%, #fff) border-box;
+  --panel-shadow: 0 10px 30px rgba(30, 80, 140, .16), inset 0 0 0 1px rgba(255, 255, 255, .7);
+
+  --field-bg: rgba(255, 255, 255, .85);
+  --field-border: rgba(30, 80, 140, .35);
+  --field-shadow: inset 0 1px 2px rgba(30, 80, 140, .08);
+  --focus-border: rgb(var(--teal));
+  --focus-shadow: 0 0 0 2px rgba(var(--teal), .22), 0 0 14px rgba(var(--teal), .25);
+
+  --btn-bg:
+    linear-gradient(rgba(255, 255, 255, .92), rgba(240, 246, 252, .85)) padding-box,
+    linear-gradient(135deg, #fff, rgba(120, 170, 230, .55) 35%, rgba(var(--amber), .42) 62%, #fff) border-box;
+  --btn-bg-hover: var(--btn-bg);
+  --btn-shadow: 0 6px 16px rgba(30, 80, 140, .14);
+  --btn-shadow-hover: 0 8px 22px rgba(var(--teal), .28);
+
+  --primary-bg:
+    linear-gradient(105deg, rgba(var(--amber), .55) 0%, rgba(var(--gold), .18) 34%, rgba(var(--teal), .22) 62%, rgba(var(--blue), .50) 100%) padding-box,
+    linear-gradient(#14304F, #0A1D33) padding-box,
+    linear-gradient(135deg, #fff, rgba(120, 170, 230, .7) 35%, rgba(var(--amber), .6) 62%, #fff) border-box;
+  --primary-text-shadow: none;
+  --primary-shadow: 0 10px 24px rgba(20, 48, 79, .35);
+
+  --lit-bg: linear-gradient(135deg, rgba(var(--amber), .70), #14304F 48%, rgba(var(--teal), .75));
+  --lit-border: #14304F;
+  --lit-text-shadow: none;
+  --lit-shadow: 0 6px 14px rgba(20, 48, 79, .35);
+
+  --dot-bg: rgb(var(--teal));
+  --dot-border: rgb(var(--teal));
+  --dot-shadow: 0 0 0 3px rgba(var(--teal), .20);
 }
 
 * { box-sizing: border-box; }
 
 body {
+  position: relative;
   margin: 0;
   background: var(--bg);
   color: var(--fg);
   font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--ambient);
+}
 
 h1, h2, h3 { margin: 0; font-weight: 600; }
-h1 { font-size: 15px; }
-h2 { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: 15px; color: var(--title); letter-spacing: .01em; text-shadow: var(--title-shadow); }
+h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--heading); text-shadow: var(--heading-glow); }
 
 p { margin: 0; }
 .hint { margin-top: 6px; color: var(--muted); font-size: 12px; }
+a { color: var(--link); text-shadow: var(--link-glow); }
 
 label { display: block; margin-bottom: 5px; font-weight: 600; }
 
 input[type="text"],
 input[type="number"],
-input[type="time"] {
+input[type="time"],
+select {
   width: 100%;
   padding: 7px 9px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+  box-shadow: var(--field-shadow);
   color: var(--fg);
   font: inherit;
 }
+select { width: auto; }
 input::placeholder { color: var(--muted); opacity: 0.85; }
-input:focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; border-color: var(--muted); }
+input:focus-visible, select:focus-visible {
+  outline: none;
+  border-color: var(--focus-border);
+  box-shadow: var(--focus-shadow);
+}
 
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; }
 button:disabled { opacity: 0.45; cursor: default; }
 
+/* panels: glass with a rim */
+ul, .card, .log, .notice, .info.error {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
+}
+
+/* small glass blocks */
 .btn {
   padding: 7px 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--btn-bg);
+  box-shadow: var(--btn-shadow);
+  color: var(--fg);
   font-weight: 600;
 }
-.btn:hover:not(:disabled) { background: var(--raised); }
+.btn:hover:not(:disabled) { background: var(--btn-bg-hover); box-shadow: var(--btn-shadow-hover); }
 
-.btn.primary { border-color: var(--fg); background: var(--fg); color: var(--on-fg); }
-.btn.primary:hover:not(:disabled) { background: var(--muted); border-color: var(--muted); }
+.btn.primary {
+  background: var(--primary-bg);
+  box-shadow: var(--primary-shadow);
+  color: var(--primary-text);
+  text-shadow: var(--primary-text-shadow);
+}
+.btn.primary:hover:not(:disabled) { filter: brightness(1.18); }
 
 .icon-btn {
   display: inline-flex;
@@ -92,11 +248,12 @@ button:disabled { opacity: 0.45; cursor: default; }
   height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: none;
-  color: var(--muted);
+  color: var(--icon-color);
 }
-.icon-btn:hover, .icon-btn:focus-visible { background: var(--raised); color: var(--fg); }
+.icon-btn svg { display: block; filter: var(--icon-filter); }
+.icon-btn:hover, .icon-btn:focus-visible { background: var(--raised); color: var(--fg); box-shadow: var(--icon-hover-shadow); }
 .icon-btn.active { position: relative; color: var(--fg); }
 .icon-btn.active::after {
   content: "";
@@ -109,13 +266,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   border-radius: 50%;
   background: var(--fg);
 }
-.icon-btn svg { display: block; }
 
 .notice {
   padding: 7px 10px;
-  border: 1px solid var(--border-strong);
-  border-left: 3px solid var(--fg);
-  border-radius: 4px;
-  background: var(--surface);
+  border-radius: 10px;
   font-size: 12px;
 }
