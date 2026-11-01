@@ -30,7 +30,22 @@
     </section>
 
     <section>
+      <h2>Соединения с i.Mind</h2>
+      <p class="hint">Если сайт пишет, что у браузера слишком много соединений Server-Sent-Events, нажмите кнопку: расширение попросит все открытые вкладки i.Mind закрыть такие соединения. Вкладки с идущей конференцией после этого придётся обновить (F5).</p>
+      <button id="resetBtn" class="btn" type="button">Сбросить соединения</button>
+      <p id="resetResult" class="result" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Проверка WebRTC</h2>
+      <p class="hint">Конференция и демонстрация экрана работают через WebRTC. Проверка создаёт соединение без внешних серверов и показывает, какие адреса находит браузер. Во время конференции расширение само записывает в журнал, установилось ли WebRTC-соединение.</p>
+      <button id="rtcBtn" class="btn" type="button">Проверить WebRTC</button>
+      <p id="rtcResult" class="result" role="status"></p>
+    </section>
+
+    <section>
       <h2>Журнал событий</h2>
+      <label class="check"><input type="checkbox" id="logToggle"> Вести журнал событий</label>
       <p class="hint">Только технические пометки: счётчики и названия ошибок. Тексты сообщений, имена и номера конференций сюда не записываются.</p>
       <div class="actions">
         <button id="refreshBtn" class="btn" type="button">Обновить</button>

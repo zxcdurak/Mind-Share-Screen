@@ -23,11 +23,33 @@
         'share-picked': ['share', 'экран выбран'],
         'share-cancelled': ['share', 'выбор экрана отменён'],
         'share-delivered': ['share', 'видеопоток экрана передан сайту'],
+        'share-surface-monitor': ['share', 'передаётся весь экран'],
+        'share-surface-window': ['share', 'передаётся окно'],
+        'share-surface-browser': ['share', 'передаётся вкладка браузера'],
+        'share-fitted': ['share', 'размер потока приведён к запросу сайта'],
+        'share-fit-failed': ['problem', 'не удалось привести размер потока к запросу сайта'],
+        'share-track-muted': ['problem', 'через 2 с после выбора кадры не приходят (дорожка в состоянии muted)'],
+        'rtc-ice-connected': ['net', 'WebRTC: соединение установлено'],
+        'rtc-ice-failed': ['problem', 'WebRTC: соединение не удалось (ICE failed)'],
+        'rtc-no-answer': ['problem', 'WebRTC: за 20 секунд сервер не прислал ответ на предложение, проверка соединения (ICE) даже не началась'],
+        'rtc-ice-stuck': ['problem', 'WebRTC: ответ сервера получен, но за 20 секунд соединение не установилось (сеть, брандмауэр или антивирус могут блокировать WebRTC)'],
+        'rtc-candidates-local-only': ['net', 'WebRTC: браузер нашёл только локальные адреса'],
+        'rtc-candidates-public': ['net', 'WebRTC: браузер нашёл внешние адреса'],
         'share-refused-call': ['share', 'сайт запросил что-то кроме экрана через legacyGetUserMedia, отказано'],
         'chat-load-event': ['chat', 'поле ввода чата не запустилось, отправлено событие load'],
         'chat-reload': ['chat', 'поле ввода чата всё ещё не запустилось, iframe перезагружен'],
         'chat-recovered': ['chat', 'поле ввода чата запустилось']
     };
+
+    // The shape of the WebRTC offer, in pieces: part -> label. The pieces are plain technical words
+    // and counts, so anything else coming from the page is dropped.
+    const SHAPE_PARTS = {
+        sections: 'предложение WebRTC, секции',
+        codecs: 'предложение WebRTC, кодеки',
+        extensions: 'предложение WebRTC, расширения заголовков',
+        attributes: 'предложение WebRTC, атрибуты'
+    };
+    const SHAPE_PIECE = /^[\w\s,:;.=()\/+\-]{1,300}$/;
 
     MindDiag.log('content', 'страница e-class загружена, расширение активно', 'page');
 
@@ -94,6 +116,12 @@
         if (!data || data.source !== 'mind-ff-fix') return;
         const code = data.code;
         if (data.type === 'event') {
+            if (code === 'rtc-offer-shape') {
+                if (Object.prototype.hasOwnProperty.call(SHAPE_PARTS, data.part) && typeof data.detail === 'string' && SHAPE_PIECE.test(data.detail)) {
+                    MindDiag.log('page', SHAPE_PARTS[data.part] + ': ' + data.detail, 'net');
+                }
+                return;
+            }
             if (typeof code === 'string' && Object.prototype.hasOwnProperty.call(EVENTS, code)) {
                 MindDiag.log('page', EVENTS[code][1], EVENTS[code][0]);
             }
