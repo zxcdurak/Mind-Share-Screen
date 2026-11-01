@@ -16,7 +16,7 @@ function setup({ displayMedia, ua, nativeGetUserMedia }) {
   };
   win.window = win;
   const ctx = vm.createContext({ window: win, navigator: nav, console, Object, Array, Map, Promise, DOMException,
-    setTimeout: (f, ms) => { timers.push({ f, ms }); return timers.length; }, clearTimeout: id => { if (timers[id - 1]) timers[id - 1].f = null; } });
+    setTimeout: (f, ms) => { if (!ms) { setImmediate(f); return 0; } timers.push({ f, ms }); return timers.length; }, clearTimeout: id => { if (timers[id - 1]) timers[id - 1].f = null; } });
   vm.runInContext(src, ctx);
   const send = d => listeners.forEach(f => f({ source: win, data: d }));
   const problems = () => posted.filter(m => m.source === 'mind-ff-fix' && m.type === 'problem').map(m => m.code);
@@ -88,6 +88,14 @@ const tick = () => new Promise(r => setImmediate(r));
   ok(t.nav.userAgent.includes('Chrome/124') && !/Firefox/.test(t.nav.userAgent), 'firefox: userAgent is replaced');
   let err; t.nav.legacyGetUserMedia({ audio: true }, () => {}, e => err = e);
   ok(err && err.name === 'NotSupportedError', 'firefox: non-screen requests are still refused');
+
+  // 8. the site's 1.5 s "extension missing" timer is answered before the picker is opened
+  let pendingFirst = null, t8;
+  t8 = setup({ displayMedia: () => { pendingFirst = t8.posted.some(m => m.type === 'getScreenPending' && m.id === 42); return Promise.resolve({ id: 's' }); } });
+  t8.send({ type: 'getScreen', id: 42 });
+  ok(pendingFirst === null, 'getDisplayMedia is not called inside the message handler');
+  await tick(); await tick();
+  ok(pendingFirst === true, 'getScreenPending with the site id is posted before getDisplayMedia is called');
 
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);

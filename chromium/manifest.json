@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mind for Chromium",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "description": "Демонстрация экрана в i.Mind на e-class.tsu.ru без отдельного расширения, избранные конференции, напоминания, уведомления чата.",
   "minimum_chrome_version": "111",
   "icons": {
@@ -11,6 +11,9 @@
   "permissions": [
     "storage",
     "alarms"
+  ],
+  "host_permissions": [
+    "https://e-class.tsu.ru/*"
   ],
   "optional_permissions": [
     "notifications"
@@ -47,6 +50,7 @@
         "src/shared/diag.js",
         "src/content/guestname.js",
         "src/content/notice.js",
+        "src/content/connections.js",
         "src/content/chatnotify.js"
       ],
       "run_at": "document_start",

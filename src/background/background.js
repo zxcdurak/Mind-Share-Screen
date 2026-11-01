@@ -191,7 +191,40 @@ browser.permissions.onAdded.addListener(() => { MindDiag.log('bg', 'разреш
 browser.permissions.onRemoved.addListener(() => { MindDiag.log('bg', 'разрешение снято', 'remind'); return reschedule(); });
 browser.runtime.onStartup.addListener(() => { MindDiag.log('bg', 'браузер запущен', 'page'); return reschedule(); });
 browser.runtime.onInstalled.addListener(() => { MindDiag.log('bg', 'расширение установлено или обновлено', 'page'); return reschedule(); });
+const SITE_ORIGIN = 'https://e-class.tsu.ru/';
+
+// Messages that change things in other tabs come only from the site's own tabs or our own pages.
+function isTrustedSender(sender) {
+    const url = (sender && sender.url) || '';
+    return url.startsWith(SITE_ORIGIN) || url.startsWith(browser.runtime.getURL(''));
+}
+
+// Asks every other i.Mind tab to close its Server-Sent-Events connections, so the
+// server stops counting them. The tab that asked is left alone (it has none to close).
+async function resetConnections(sender) {
+    let tabs = [];
+    try {
+        tabs = await browser.tabs.query({ url: SITE_ORIGIN + '*' });
+    } catch (e) {
+        MindDiag.log('bg', 'сброс соединений: не удалось получить вкладки: ' + (e && e.message), 'problem');
+    }
+    const own = sender && sender.tab ? sender.tab.id : null;
+    let reached = 0;
+    let closed = 0;
+    for (const tab of tabs) {
+        if (tab.id === own) continue;
+        try {
+            const reply = await browser.tabs.sendMessage(tab.id, { type: 'closeStreams' });
+            reached++;
+            if (reply && Number.isInteger(reply.closed)) closed += reply.closed;
+        } catch (e) { /* the tab has no content script (still loading or not an i.Mind page) */ }
+    }
+    MindDiag.log('bg', 'сброс соединений: вкладок ' + reached + ', закрыто потоков ' + closed, 'page');
+    return { tabs: reached, closed };
+}
+
 browser.runtime.onMessage.addListener((message, sender) => {
+    if (message && message.type === 'resetConnections') return isTrustedSender(sender) ? resetConnections(sender) : undefined;
     if (message && message.type === 'reschedule') return reschedule();
     if (message && message.type === 'chat') return onChatMessage(message, sender);
     if (message && message.type === 'diagState') return Promise.resolve({ notificationsApi: !!browser.notifications, shownEvent: !!(browser.notifications && browser.notifications.onShown), alarmsApi: !!browser.alarms });

@@ -4,6 +4,8 @@
 // names); message texts, names and conference numbers never are.
 const MindDiag = (() => {
     const KEY = 'diagLog';
+    // The user can switch the log off on the diagnostics page; anything but an explicit false means on.
+    const ENABLED_KEY = 'diagEnabled';
     const MAX = 150;
     let chain = Promise.resolve();
 
@@ -11,7 +13,8 @@ const MindDiag = (() => {
     function log(source, text, kind) {
         const entry = { t: Date.now(), s: source, k: kind || 'page', m: String(text).slice(0, 300) };
         chain = chain.then(async () => {
-            const stored = await browser.storage.local.get(KEY);
+            const stored = await browser.storage.local.get([KEY, ENABLED_KEY]);
+            if (stored[ENABLED_KEY] === false) return;
             const list = Array.isArray(stored[KEY]) ? stored[KEY] : [];
             list.push(entry);
             await browser.storage.local.set({ [KEY]: list.slice(-MAX) });
@@ -28,5 +31,14 @@ const MindDiag = (() => {
         return browser.storage.local.remove(KEY);
     }
 
-    return { KEY, log, read, clear };
+    async function isEnabled() {
+        const stored = await browser.storage.local.get(ENABLED_KEY);
+        return stored[ENABLED_KEY] !== false;
+    }
+
+    function setEnabled(on) {
+        return browser.storage.local.set({ [ENABLED_KEY]: !!on });
+    }
+
+    return { KEY, ENABLED_KEY, log, read, clear, isEnabled, setEnabled };
 })();

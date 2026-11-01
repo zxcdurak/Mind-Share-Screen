@@ -7,6 +7,7 @@ const PERMS = { permissions: ['notifications'] };
 const KINDS = [
     ['page', 'Страница e-class'],
     ['share', 'Демонстрация экрана'],
+    ['net', 'Сеть и WebRTC'],
     ['chat', 'Починка поля ввода чата'],
     ['notify', 'Уведомления о чате'],
     ['remind', 'Напоминания'],
@@ -41,6 +42,7 @@ async function collectState() {
         add('Браузер', navigator.userAgent);
     }
     add('Тема', MindTheme.LABELS[MindTheme.mode]);
+    add('Журнал событий', (await MindDiag.isEnabled()) ? 'ведётся' : 'выключен, новые события не записываются');
 
     const stored = await browser.storage.local.get(['favorites', 'guestName', 'chatNotify', 'reminderLead']);
     const favorites = Array.isArray(stored.favorites) ? stored.favorites : [];
@@ -163,6 +165,83 @@ $('testBtn').addEventListener('click', async () => {
     await renderLog();
 });
 
+// Codec names of an SDP offer, grouped by media kind: "video: VP8, VP9, flexfec-03; audio: opus".
+// Only names, no addresses or fingerprints, so the line is safe to copy into a bug report.
+function summarizeCodecs(sdp) {
+    const byKind = {};
+    let kind = '';
+    for (const line of String(sdp).split(/\r?\n/)) {
+        const section = /^m=(\w+)/.exec(line);
+        if (section) { kind = section[1]; continue; }
+        const codec = /^a=rtpmap:\d+ ([^/\s]+)/.exec(line);
+        if (codec && kind) {
+            byKind[kind] = byKind[kind] || [];
+            if (!byKind[kind].includes(codec[1])) byKind[kind].push(codec[1]);
+        }
+    }
+    return Object.keys(byKind).map(k => k + ': ' + byKind[k].join(', ')).join('; ');
+}
+
+// Local WebRTC check: a connection without any servers, so nothing leaves the computer.
+// It shows whether this browser can gather connection addresses at all.
+$('rtcBtn').addEventListener('click', async () => {
+    const out = $('rtcResult');
+    out.textContent = 'Проверяю…';
+    if (typeof RTCPeerConnection !== 'function') {
+        out.textContent = 'В этом браузере нет WebRTC.';
+        return;
+    }
+    const kinds = {};
+    let hidden = 0;
+    let pc = null;
+    let codecs = '';
+    try {
+        pc = new RTCPeerConnection({ iceServers: [] });
+        pc.addTransceiver('audio');
+        pc.addTransceiver('video');
+        const done = new Promise(resolve => {
+            const timer = setTimeout(resolve, 4000);
+            pc.onicecandidate = event => {
+                if (!event.candidate) { clearTimeout(timer); resolve(); return; }
+                const text = event.candidate.candidate || '';
+                const match = / typ (host|srflx|prflx|relay)/.exec(text);
+                if (match) kinds[match[1]] = (kinds[match[1]] || 0) + 1;
+                if (/ [0-9a-f-]+\.local /i.test(text)) hidden++;
+            };
+        });
+        const offer = await pc.createOffer();
+        codecs = summarizeCodecs(offer.sdp);
+        await pc.setLocalDescription(offer);
+        await done;
+    } catch (e) {
+        out.textContent = 'Не удалось создать WebRTC-соединение: ' + (e && e.name ? e.name : 'ошибка') + '.';
+        await MindDiag.log('diagnostics', 'проверка WebRTC: ошибка ' + (e && e.name), 'problem');
+        await renderLog();
+        return;
+    } finally {
+        if (pc) pc.close();
+    }
+    const total = Object.values(kinds).reduce((a, b) => a + b, 0);
+    const summary = Object.keys(kinds).map(k => k + ': ' + kinds[k]).join(', ');
+    out.textContent = total
+        ? 'Браузер нашёл адреса (' + summary + ')' + (hidden ? '; локальные адреса скрыты под именами .local, это нормально' : '') + '. Без внешнего сервера проверить большее нельзя: если конференция всё равно не подключается, а в другом браузере работает, смотрите брандмауэр, антивирус и настройки WebRTC этого браузера.'
+        : 'Браузер не нашёл ни одного адреса для WebRTC. Это объясняет, почему конференция не подключается: проверьте настройки приватности и WebRTC браузера, расширения для защиты от утечки IP, брандмауэр.';
+    await MindDiag.log('diagnostics', 'проверка WebRTC: ' + (summary || 'адресов нет'), total ? 'net' : 'problem');
+    if (codecs) await MindDiag.log('diagnostics', 'кодеки в предложении: ' + codecs, 'net');
+    await renderLog();
+});
+
+$('resetBtn').addEventListener('click', async () => {
+    const out = $('resetResult');
+    out.textContent = 'Сбрасываю…';
+    let result = null;
+    try { result = await browser.runtime.sendMessage({ type: 'resetConnections' }); } catch (e) { /* reported below */ }
+    if (!result) out.textContent = 'Не удалось связаться с фоном расширения. Подробности в журнале ниже.';
+    else if (!result.tabs) out.textContent = 'Открытых вкладок i.Mind нет, закрывать нечего. Если сайт всё равно жалуется, сервер освободит соединения сам примерно через 45 секунд.';
+    else out.textContent = 'Вкладок i.Mind: ' + result.tabs + ', закрыто соединений: ' + result.closed + '.';
+    await renderLog();
+});
+
 $('refreshBtn').addEventListener('click', () => { renderState(); renderLog(); });
 
 $('clearBtn').addEventListener('click', async () => {
@@ -190,7 +269,13 @@ browser.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes[MindDiag.KEY]) renderLog();
 });
 
+$('logToggle').addEventListener('change', async () => {
+    await MindDiag.setEnabled($('logToggle').checked);
+    await renderState();
+});
+
 (async function init() {
+    $('logToggle').checked = await MindDiag.isEnabled();
     setupFilter();
     await renderState();
     await renderLog();
