@@ -171,6 +171,77 @@ themeBtn.addEventListener('click', () => {
 });
 renderThemeButton();
 
+// Style picker: a button that opens a drop-down list of the looks (Призма, Ритм, Дымка, Растр, Чертёж). The
+// light / dark mode button next to it is independent of it.
+const styleWrap = document.createElement('span');
+styleWrap.className = 'menu-wrap';
+
+const styleBtn = document.createElement('button');
+styleBtn.type = 'button';
+styleBtn.id = 'styleBtn';
+styleBtn.className = 'icon-btn';
+styleBtn.setAttribute('aria-haspopup', 'listbox');
+styleBtn.setAttribute('aria-expanded', 'false');
+styleBtn.setAttribute('aria-controls', 'styleMenu');
+styleBtn.append(MindIcons.create('palette'));
+
+const styleMenu = document.createElement('div');
+styleMenu.id = 'styleMenu';
+styleMenu.className = 'menu';
+styleMenu.setAttribute('role', 'listbox');
+styleMenu.setAttribute('aria-label', 'Оформление');
+styleMenu.hidden = true;
+
+const styleItems = MindTheme.STYLES.map(style => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'menu-item';
+    item.dataset.style = style;
+    item.setAttribute('role', 'option');
+    item.append(MindIcons.create('check'), document.createTextNode(MindTheme.STYLE_LABELS[style]));
+    item.addEventListener('click', () => {
+        MindTheme.setStyle(style);
+        closeStyleMenu(true);
+    });
+    return item;
+});
+styleMenu.append(...styleItems);
+styleWrap.append(styleBtn, styleMenu);
+
+function renderStyleMenu() {
+    const current = MindTheme.style;
+    const label = 'Оформление: ' + MindTheme.STYLE_LABELS[current];
+    styleBtn.title = label;
+    styleBtn.setAttribute('aria-label', label);
+    for (const item of styleItems) item.setAttribute('aria-selected', String(item.dataset.style === current));
+}
+function openStyleMenu() {
+    styleMenu.hidden = false;
+    styleBtn.setAttribute('aria-expanded', 'true');
+    (styleItems.find(item => item.dataset.style === MindTheme.style) || styleItems[0]).focus();
+}
+function closeStyleMenu(refocus) {
+    styleMenu.hidden = true;
+    styleBtn.setAttribute('aria-expanded', 'false');
+    renderStyleMenu();
+    if (refocus) styleBtn.focus();
+}
+styleBtn.addEventListener('click', () => (styleMenu.hidden ? openStyleMenu() : closeStyleMenu(false)));
+styleMenu.addEventListener('keydown', event => {
+    const at = styleItems.indexOf(document.activeElement);
+    const go = index => { event.preventDefault(); styleItems[(index + styleItems.length) % styleItems.length].focus(); };
+    if (event.key === 'ArrowDown') go(at + 1);
+    else if (event.key === 'ArrowUp') go(at - 1);
+    else if (event.key === 'Home') go(0);
+    else if (event.key === 'End') go(styleItems.length - 1);
+    else if (event.key === 'Escape') { event.preventDefault(); closeStyleMenu(true); }
+    else if (event.key === 'Tab') closeStyleMenu(false);
+});
+document.addEventListener('click', event => {
+    if (!styleWrap.contains(event.target)) closeStyleMenu(false);
+});
+renderStyleMenu();
+
 const bellBtn = MindIcons.button('bell', 'Уведомления и напоминания');
 bellBtn.addEventListener('click', async () => {
     await browser.tabs.create({ url: browser.runtime.getURL('src/notifications/notifications.html') });
@@ -183,7 +254,7 @@ diagBtn.addEventListener('click', async () => {
     window.close();
 });
 
-$('headerButtons').append(themeBtn, bellBtn, diagBtn, transferBtn);
+$('headerButtons').append(styleWrap, themeBtn, bellBtn, diagBtn, transferBtn);
 
 $('guestName').addEventListener('input', () => {
     browser.storage.local.set({ [GUEST_NAME_KEY]: cleanName($('guestName').value) });

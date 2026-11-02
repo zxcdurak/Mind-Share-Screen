@@ -12,6 +12,35 @@ header {
 
 .header-buttons { display: inline-flex; gap: 2px; }
 
+/* drop-down list of the looks, under the palette button */
+.menu-wrap { position: relative; display: inline-flex; }
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+}
+.menu:not([hidden]) { display: flex; }
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-field);
+  background: none;
+  color: var(--fg);
+  text-align: left;
+}
+.menu-item:hover, .menu-item:focus-visible { background: var(--raised); outline: none; }
+.menu-item[aria-selected="true"] { font-weight: 700; }
+.menu-item svg { flex: none; visibility: hidden; }
+.menu-item[aria-selected="true"] svg { visibility: visible; }
+
 .block + .block {
   margin-top: 16px;
   padding-top: 14px;
