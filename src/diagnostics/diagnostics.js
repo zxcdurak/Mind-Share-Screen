@@ -41,7 +41,7 @@ async function collectState() {
     } catch (e) {
         add('Браузер', navigator.userAgent);
     }
-    add('Тема', MindTheme.LABELS[MindTheme.mode]);
+    add('Тема', MindTheme.LABELS[MindTheme.mode] + ', оформление «' + MindTheme.STYLE_LABELS[MindTheme.style] + '»');
     add('Журнал событий', (await MindDiag.isEnabled()) ? 'ведётся' : 'выключен, новые события не записываются');
 
     const stored = await browser.storage.local.get(['favorites', 'guestName', 'chatNotify', 'reminderLead']);
