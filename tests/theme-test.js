@@ -16,7 +16,7 @@ function setup(initial = {}, dark = true) {
     setItem: (k, v) => { if (breakStorage) throw new Error('blocked'); store[k] = String(v); }
   };
   const window = { matchMedia: () => ({ matches: !dark, addEventListener() {} }), addEventListener() {} };
-  const ctx = vm.createContext({ window, localStorage, document: { documentElement: { dataset } }, console });
+  const ctx = vm.createContext({ window, localStorage, document: { documentElement: { dataset }, getElementById: () => null, head: { appendChild() {} } }, console });
   vm.runInContext(read('src/shared/theme.js'), ctx);
   return { theme: ctx.MindTheme, dataset, store, breakStorage: () => { breakStorage = true; } };
 }
@@ -89,7 +89,7 @@ ok(/body::before\s*\{[^}]*z-index:\s*-1/.test(css), 'the artwork layer sits behi
 
 // the popup must offer the choice
 const popup = read('src/popup/popup.js');
-ok(/role', 'listbox'/.test(popup) && /MindTheme\.STYLES\.map/.test(popup) && /MindTheme\.setStyle\(style\)/.test(popup) && /append\(styleWrap/.test(popup), 'the popup offers the styles as a drop-down list');
+ok(/role', 'listbox'/.test(popup) && /MindTheme\.STYLES\.concat\([^;]*\)\.map\(/.test(popup) && /customThemeItem/.test(popup) && /MindTheme\.setStyle\(style\)/.test(popup) && /append\(styleWrap/.test(popup), 'the popup offers the styles as a drop-down list');
 ok(/aria-expanded/.test(popup) && /Escape/.test(popup) && /ArrowDown/.test(popup), 'the list closes with Escape and works with the arrow keys');
 ok(/\.menu\b/.test(css.slice(css.indexOf('ul, .card'), css.indexOf('ul, .card') + 80)), 'the list is drawn like a panel of the current style');
 ok(/palette:/.test(read('src/shared/icons.js')), 'the palette icon exists');

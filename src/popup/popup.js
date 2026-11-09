@@ -171,7 +171,8 @@ themeBtn.addEventListener('click', () => {
 });
 renderThemeButton();
 
-// Style picker: a button that opens a drop-down list of the looks (Призма, Ритм, Дымка, Растр, Чертёж). The
+// Style picker: a button that opens a drop-down list of the looks (Призма, Ритм, Дымка, Растр, Чертёж, and the user's own
+// themes, one item for each saved) with "Своя тема…" at the end, which opens the page where such a theme is made. The
 // light / dark mode button next to it is independent of it.
 const styleWrap = document.createElement('span');
 styleWrap.className = 'menu-wrap';
@@ -192,25 +193,37 @@ styleMenu.setAttribute('role', 'listbox');
 styleMenu.setAttribute('aria-label', 'Оформление');
 styleMenu.hidden = true;
 
-const styleItems = MindTheme.STYLES.map(style => {
+const styleItems = MindTheme.STYLES.concat(MindTheme.custom.list().map(theme => MindTheme.CUSTOM_PREFIX + theme.id)).map(style => {
     const item = document.createElement('button');
     item.type = 'button';
     item.className = 'menu-item';
     item.dataset.style = style;
     item.setAttribute('role', 'option');
-    item.append(MindIcons.create('check'), document.createTextNode(MindTheme.STYLE_LABELS[style]));
+    item.append(MindIcons.create('check'), document.createTextNode(MindTheme.labelOf(style)));
     item.addEventListener('click', () => {
         MindTheme.setStyle(style);
         closeStyleMenu(true);
     });
     return item;
 });
+// the last item is not a look but a door: the page with the instruction for making your own theme
+const customPageItem = document.createElement('button');
+customPageItem.type = 'button';
+customPageItem.className = 'menu-item';
+customPageItem.id = 'customThemeItem';
+customPageItem.setAttribute('role', 'option');
+customPageItem.append(MindIcons.create('check'), document.createTextNode('Своя тема…'));
+customPageItem.addEventListener('click', async () => {
+    await browser.tabs.create({ url: browser.runtime.getURL('src/customtheme/customtheme.html') });
+    window.close();
+});
+styleItems.push(customPageItem);
 styleMenu.append(...styleItems);
 styleWrap.append(styleBtn, styleMenu);
 
 function renderStyleMenu() {
     const current = MindTheme.style;
-    const label = 'Оформление: ' + MindTheme.STYLE_LABELS[current];
+    const label = 'Оформление: ' + MindTheme.labelOf(current);
     styleBtn.title = label;
     styleBtn.setAttribute('aria-label', label);
     for (const item of styleItems) item.setAttribute('aria-selected', String(item.dataset.style === current));

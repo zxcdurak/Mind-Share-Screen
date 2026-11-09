@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Своя тема</title>
+  <script src="../shared/theme.js"></script>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="customtheme.css">
+</head>
+<body>
+  <main>
+    <h1>Своя тема</h1>
+
+    <section>
+      <h2>Как это сделать</h2>
+      <ol>
+        <li>Нажмите «Скопировать промпт».</li>
+        <li>Вставьте его в чат с любой нейросетью. В конце промпта допишите, какой должна быть тема, или приложите картинку, из которой нужно взять цвета и настроение.</li>
+        <li>Скопируйте ответ нейросети и вставьте его в поле ниже. Нажмите «Сохранить и включить»: тема сразу включится и добавится в список сохранённых. Прежние темы остаются.</li>
+      </ol>
+      <p>Нейросеть отвечает коротким описанием (цвета, настройки формы и, если она решит, детали фона: фигуры, линии, точки, градиенты, световые пятна и собственные SVG-рисунки), а не готовым CSS. Расширение само проверяет его и рисует оформление, поэтому из чужого ответа на страницу ничего лишнего не попадёт.</p>
+      <button id="copyBtn" class="btn primary" type="button">Скопировать промпт</button>
+      <p id="copyInfo" class="info" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Ответ нейросети</h2>
+      <label for="answer">Вставьте сюда ответ целиком</label>
+      <textarea id="answer" spellcheck="false" rows="12" placeholder='{ "name": "…", "shape": { … }, "dark": { … }, "light": { … } }'></textarea>
+      <div class="row">
+        <button id="applyBtn" class="btn primary" type="button">Сохранить и включить</button>
+        <button id="resetBtn" class="btn" type="button">Вернуть обычную тему</button>
+      </div>
+      <p id="applyInfo" class="info" role="status"></p>
+      <ul id="problems" class="problems" hidden></ul>
+    </section>
+
+    <section>
+      <h2>Сохранённые темы <span id="savedCount" class="count"></span></h2>
+      <p id="savedEmpty" class="info">Пока нет ни одной. Сохранённые темы появятся здесь и в списке оформлений в окне расширения.</p>
+      <ul id="saved" class="saved" hidden></ul>
+    </section>
+  </main>
+  <script src="customtheme.js"></script>
+</body>
+</html>
